@@ -6,16 +6,14 @@
     <title>七仔的千字文</title>
     <style>
         :root {
-            --bg-color: #F9F4DC; /* 仿古宣纸色 */
-            --ink-color: #2b2b2b; /* 墨黑色 */
-            --grid-color: rgba(231, 76, 60, 0.4); /* 朱砂红，用于米字格 */
-            --primary-color: #8E44AD; /* 紫气东来的紫，区分于三字经的红 */
+            --bg-color: #F9F4DC; 
+            --ink-color: #2b2b2b;
+            --grid-color: rgba(231, 76, 60, 0.4);
         }
 
         body {
             margin: 0; padding: 0;
             background-color: var(--bg-color);
-            /* 细微的纸张噪点 */
             background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
             font-family: "KaiTi", "STKaiti", "楷体", serif;
             height: 100vh;
@@ -23,15 +21,15 @@
             overflow: hidden; user-select: none;
         }
 
-        /* 顶部标题栏 */
         .header-deco {
             height: 90px;
-            background-color: #34495E; /* 深蓝灰色背景 */
+            background-color: #34495E;
             display: flex; align-items: center; justify-content: center;
             color: #fff; font-size: 2.2rem; font-weight: bold;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             position: relative; z-index: 10;
-            border-bottom: 4px solid #F1C40F; /* 金边 */
+            border-bottom: 4px solid #F1C40F;
+            flex-shrink: 0;
         }
 
         .home-btn {
@@ -41,38 +39,32 @@
             color: #fff; text-decoration: none;
             font-size: 0.9rem; padding: 6px 15px; border-radius: 20px;
             border: 1px solid rgba(255,255,255,0.3);
-            font-family: sans-serif; font-weight: normal;
+            font-family: sans-serif;
         }
 
-        /* 主体展示区 */
+        /* 增加触摸区域 */
         #content-area {
             flex: 1;
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
             padding: 20px; gap: 30px;
+            touch-action: pan-y;
         }
 
-        /* 每一行的容器 */
         .verse-row {
             display: flex; gap: 15px;
-            opacity: 0; transform: translateY(20px); /* 初始隐藏，用于动画 */
+            opacity: 0; transform: translateY(20px);
             transition: all 0.5s ease;
         }
         .verse-row.show { opacity: 1; transform: translateY(0); }
 
-        /* 单个字卡容器 */
-        .char-box {
-            display: flex; flex-direction: column; align-items: center; gap: 5px;
-        }
+        .char-box { display: flex; flex-direction: column; align-items: center; gap: 5px; }
 
-        /* 拼音 */
         .pinyin {
             font-size: 1.1rem; color: #555;
-            font-family: Arial, sans-serif;
-            height: 20px;
+            font-family: Arial, sans-serif; height: 20px;
         }
 
-        /* 米字格汉字 */
         .grid-cell {
             width: 70px; height: 70px;
             border: 2px solid var(--grid-color);
@@ -82,21 +74,14 @@
             box-shadow: 2px 2px 5px rgba(0,0,0,0.05);
         }
 
-        /* CSS画米字格线 */
-        .grid-cell::before, .grid-cell::after {
-            content: ''; position: absolute;
-            background-color: var(--grid-color);
-        }
-        /* 虚线十字 */
         .grid-cell::before {
-            top: 50%; left: 0; width: 100%; height: 1px;
+            content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 1px;
             border-top: 1px dashed var(--grid-color); background: none;
         }
         .grid-cell::after {
-            left: 50%; top: 0; height: 100%; width: 1px;
+            content: ''; position: absolute; left: 50%; top: 0; height: 100%; width: 1px;
             border-left: 1px dashed var(--grid-color); background: none;
         }
-        /* 斜线 */
         .grid-diagonal-1 {
             position: absolute; width: 141%; height: 1px;
             top: 0; left: 0; transform-origin: 0 0; transform: rotate(45deg);
@@ -108,42 +93,41 @@
             border-top: 1px dashed var(--grid-color); opacity: 0.5; pointer-events: none;
         }
 
-        /* 汉字本体 */
         .hanzi {
-            font-size: 3.5rem; line-height: 1;
-            color: var(--ink-color); z-index: 2;
+            font-size: 3.5rem; line-height: 1; color: var(--ink-color); z-index: 2;
             font-family: "KaiTi", "STKaiti", "楷体", serif;
         }
 
-        /* 页码 */
         .page-indicator {
             position: absolute; bottom: 140px;
-            font-size: 1rem; color: #7f8c8d;
-            letter-spacing: 2px;
+            font-size: 1rem; color: #7f8c8d; letter-spacing: 2px;
         }
 
-        /* 底部控制栏 */
+        /* 修复底部控制栏 */
         .controls {
-            height: 120px;
-            display: flex; align-items: center; justify-content: center;
-            gap: 40px; padding-bottom: 20px;
+            height: 120px; width: 100%;
+            display: flex; align-items: center; 
+            justify-content: space-evenly; /* 均匀分布 */
+            padding-bottom: 20px;
             background: linear-gradient(to top, rgba(249, 244, 220, 1), rgba(249, 244, 220, 0));
+            flex-shrink: 0;
         }
 
         .nav-btn {
             width: 65px; height: 65px; border-radius: 50%;
             border: 2px solid #2C3E50;
             background-color: #fff; color: #2C3E50;
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             box-shadow: 0 5px 0 #2C3E50;
             cursor: pointer; display: flex; align-items: center; justify-content: center;
             transition: transform 0.1s;
+            flex-shrink: 0; z-index: 20;
         }
         .nav-btn:active { transform: translateY(5px); box-shadow: none; }
 
         .auto-play-switch {
             display: flex; flex-direction: column; align-items: center;
-            gap: 8px; font-weight: bold; color: #555;
+            gap: 8px; font-weight: bold; color: #555; z-index: 20;
         }
         
         .switch-btn {
@@ -151,7 +135,6 @@
             border-radius: 15px; position: relative; cursor: pointer; transition: 0.3s;
         }
         .switch-btn.active { background: #27AE60; }
-        
         .switch-circle {
             width: 26px; height: 26px; background: #fff;
             border-radius: 50%; position: absolute; top: 2px; left: 2px;
@@ -160,16 +143,14 @@
         .switch-btn.active .switch-circle { left: 26px; }
 
         .hint {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: rgba(44, 62, 80, 0.9); color: #fff;
             padding: 12px 25px; border-radius: 8px;
             font-size: 1.1rem; opacity: 0; pointer-events: none;
-            transition: opacity 0.3s; z-index: 20;
+            transition: opacity 0.3s; z-index: 20; white-space: nowrap;
         }
         .hint.show { opacity: 1; }
 
-        /* 手机适配 */
         @media (max-width: 400px) {
             .grid-cell { width: 60px; height: 60px; }
             .hanzi { font-size: 3rem; }
@@ -184,6 +165,7 @@
             .verse-row { gap: 30px; }
             #content-area { gap: 50px; }
             .header-deco { height: 110px; font-size: 3rem; }
+            .controls { justify-content: center; gap: 50px; }
         }
     </style>
 </head>
@@ -197,26 +179,22 @@
     <div id="content-area" onclick="playCurrentAudio()">
         <div class="verse-row" id="row1"></div>
         <div class="verse-row" id="row2"></div>
-
         <div class="page-indicator" id="page-num">1 / 10</div>
         <div class="hint" id="hint-box">已为您朗读</div>
     </div>
 
     <div class="controls">
-        <button class="nav-btn" onclick="prevPage()">◀</button>
+        <button class="nav-btn" onclick="prevPage()">&#9664;</button>
         <div class="auto-play-switch" onclick="toggleAutoPlay()">
             <div class="switch-btn" id="auto-switch">
                 <div class="switch-circle"></div>
             </div>
             <span>自动练字</span>
         </div>
-        <button class="nav-btn" onclick="nextPage()">▶</button>
+        <button class="nav-btn" onclick="nextPage()">&#9654;</button>
     </div>
 
     <script>
-        // --- 数据准备 (前80字，共10页) ---
-        // 格式：[汉字, 拼音]
-        // 为了方便录入，使用 4字一组
         const rawData = [
             { text: "天地玄黄", pinyin: ["Tiān", "dì", "xuán", "huáng"] },
             { text: "宇宙洪荒", pinyin: ["Yǔ", "zhòu", "hóng", "huāng"] },
@@ -240,9 +218,26 @@
             { text: "鸟官人皇", pinyin: ["Niǎo", "guān", "rén", "huáng"] }
         ];
 
-        let currentIndex = 0; // 当前页码
-        const totalPages = Math.ceil(rawData.length / 2); // 每页显示2行(8个字)
+        let currentIndex = 0;
+        const totalPages = Math.ceil(rawData.length / 2);
         let isAutoPlay = false;
+
+        // --- 手势滑动逻辑 ---
+        let touchStartX = 0;
+        let touchEndX = 0;
+        const container = document.getElementById('content-area');
+
+        container.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; });
+        container.addEventListener('touchend', e => { 
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            if (touchStartX - touchEndX > 50) nextPage();
+            if (touchEndX - touchStartX > 50) prevPage();
+        }
+        // ------------------
 
         function renderPage() {
             const idx = currentIndex * 2;
@@ -252,25 +247,21 @@
             const row1 = document.getElementById('row1');
             const row2 = document.getElementById('row2');
 
-            // 先隐藏再显示，制造切换动画
             row1.classList.remove('show');
             row2.classList.remove('show');
 
             setTimeout(() => {
                 row1.innerHTML = generateGridHtml(item1);
                 row2.innerHTML = item2 ? generateGridHtml(item2) : '';
-                
-                // 强制重绘后添加show类
                 requestAnimationFrame(() => {
                     row1.classList.add('show');
                     if(item2) row2.classList.add('show');
                 });
-            }, 50); // 短暂延迟
+            }, 50);
 
             document.getElementById('page-num').textContent = `${currentIndex + 1} / ${totalPages}`;
         }
 
-        // 生成米字格HTML
         function generateGridHtml(item) {
             let html = '';
             for(let i=0; i<item.text.length; i++) {
@@ -291,20 +282,14 @@
         function playCurrentAudio() {
             if (!('speechSynthesis' in window)) return;
             window.speechSynthesis.cancel();
-
             const idx = currentIndex * 2;
             const text1 = rawData[idx].text;
             const text2 = rawData[idx+1] ? rawData[idx+1].text : '';
-            
-            // 朗读文本，四字一顿
             const utter = new SpeechSynthesisUtterance(`${text1}，${text2}`);
-            utter.lang = 'zh-CN';
-            utter.rate = 0.75; // 稍微慢一点，适合认字
-            
+            utter.lang = 'zh-CN'; utter.rate = 0.75;
             showHint("🔊 正在朗读...");
-            
             utter.onend = function() {
-                if(isAutoPlay) setTimeout(nextPage, 2500); // 留更多时间看字
+                if(isAutoPlay) setTimeout(nextPage, 2500);
             };
             window.speechSynthesis.speak(utter);
         }
@@ -326,21 +311,15 @@
                 if(isAutoPlay) playCurrentAudio();
             } else {
                 showHint("已学完本节");
-                isAutoPlay = false;
-                updateSwitchUI();
+                isAutoPlay = false; updateSwitchUI();
             }
         }
 
         function toggleAutoPlay() {
             isAutoPlay = !isAutoPlay;
             updateSwitchUI();
-            if(isAutoPlay) {
-                showHint("自动练字模式");
-                playCurrentAudio();
-            } else {
-                showHint("已暂停");
-                window.speechSynthesis.cancel();
-            }
+            if(isAutoPlay) { showHint("自动练字模式"); playCurrentAudio(); }
+            else { showHint("已暂停"); window.speechSynthesis.cancel(); }
         }
 
         function updateSwitchUI() {
@@ -356,9 +335,7 @@
             setTimeout(() => box.classList.remove('show'), 1500);
         }
 
-        // 初始化
         renderPage();
-
     </script>
 </body>
 </html>
