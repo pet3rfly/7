@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>数字捉迷藏</title>
+    <style>
+        :root {
+            --card-bg: #FFFFFF;
+            /* --- 升级：更深、更多层次的投影，营造悬浮感 --- */
+            --card-shadow: 0 20px 40px rgba(0,0,0,0.25), 0 10px 15px rgba(0,0,0,0.1);
+            /* --- 新增：模拟卡片厚度的边缘颜色（浅灰色） --- */
+            --card-edge-color: #E0E0E0;
+            --primary-color: #FF8A65; 
+            --accent-color: #4DB6AC; 
+            --qizai-color: #9575CD;
+            --text-color: #37474F;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-image: url('../images/szzmcbg.jpg'); 
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-size: cover;
+            font-family: "Comic Sans MS", "YouYuan", "幼圆", "Rounded Mplus 1c", sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            user-select: none;
+            touch-action: manipulation;
+
+            /* --- 主页按钮样式 --- */
+        .home-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 8px 15px;
+            border-radius: 20px;
+            text-decoration: none;
+            color: var(--primary-color);
+            font-weight: bold;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border: 3px solid #fff;
+            z-index: 200;
+            transition: transform 0.2s;
+        }
+        .home-btn:active { transform: scale(0.9); }
+        
+        /* 手机端把按钮改小一点 */
+        @media (max-width: 600px) {
+            .home-btn { top: 15px; right: 15px; font-size: 1rem; padding: 6px 12px; }
+        }
+        }
+
+        /* 背景半透明遮罩 */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.3);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        header {
+            text-align: center;
+            padding: 10px;
+            margin-top: 10px;
+            position: relative;
+            z-index: 10;
+        }
+        
+        /* --- 你优化过的标题图片样式 --- */
+        .header-img {
+            max-width: 90%;
+            height: auto;
+            max-height: 300px; /* 已应用你的修改 */
+            display: block;
+            margin: 0 auto;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+            animation: floatTitle 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes floatTitle {
+            from { transform: translateY(0); }
+            to { transform: translateY(-8px); }
+        }
+
+        p.subtitle {
+            margin: 5px auto 0;
+            color: var(--text-color);
+            font-size: 1.1rem;
+            font-weight: bold;
+            background: rgba(255,255,255,0.7);
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        #game-board {
+            flex: 1;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-content: flex-start;
+            padding: 30px 10px 110px; /* 增加顶部和底部内边距 */
+            gap: 25px; /* 增加卡片间距 */
+            max-width: 1100px; /* 增加最大宽度 */
+            margin: 0 auto;
+            z-index: 10;
+        }
+
+        /* --- 卡片核心样式升级 --- */
+        .card {
+            /* 1. 尺寸明显加大 */
+            width: 170px;
+            height: 240px;
+            
+            background-color: var(--card-bg);
+            border-radius: 25px; /* 圆角更大 */
+            box-shadow: var(--card-shadow);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            
+            /* 字体加大 */
+            font-size: 7rem; 
+            font-weight: 900;
+            color: var(--primary-color);
+            
+            /* 2. 3D立体效果关键：复合边框 */
+            /* 顶部和两侧是白边 */
+            border: 6px solid #fff; 
+            /* 底部是加厚的灰边，模拟厚度感 */
+            border-bottom: 14px solid var(--card-edge-color); 
+            
+            /* 增加一个微妙的内部光泽，让表面看起来更光滑 */
+            background-image: linear-gradient(to bottom right, rgba(255,255,255,0.8), rgba(255,255,255,0));
+
+            /* 优化过渡效果，加入边框和投影的变化 */
+            transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+            
+            cursor: pointer;
+            position: relative;
+            animation: popIn 0.5s ease-out backwards;
+            -webkit-text-stroke: 3px #fff; /* 描边也加粗 */
+        }
+
+        /* 鼠标悬停效果：轻轻上浮 */
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3), 0 15px 20px rgba(0,0,0,0.15);
+        }
+
+        /* --- 点击按压效果优化 --- */
+        .card:active {
+            /* 向下移动并轻微缩小，模拟被按下去 */
+            transform: translateY(6px) scale(0.98);
+            /* 投影变小、变实，感觉贴近地面 */
+            box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+            /* 底部边框变薄，模拟压缩感 */
+            border-bottom-width: 6px;
+        }
+
+        /* 七仔卡片特殊样式 */
+        .card.qizai {
+            background-color: var(--qizai-color);
+            /* 七仔卡片的边框保持一致 */
+            border: 6px solid #fff;
+            border-bottom: 14px solid #B39DDB; /* 用深一点的紫色模拟厚度 */
+            padding: 0;
+            overflow: hidden;
+        }
+        
+        .card.qizai:active {
+            border-bottom-width: 6px;
+        }
+        
+        .card.qizai img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            /* 图片圆角要比卡片小一点，防止漏边 */
+            border-radius: 18px; 
+            pointer-events: none;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0) translateY(50px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        #settings-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 10px 25px; /* 加宽一点 */
+            border-radius: 50px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            z-index: 100;
+            border: 4px solid #FFCCBC; /* 边框加粗 */
+        }
+
+        .switch-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+            color: var(--text-color);
+            font-weight: bold;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ddd;
+            transition: .4s;
+            border-radius: 34px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px; width: 26px;
+            left: 4px; bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        input:checked + .slider { background-color: var(--accent-color); }
+        input:checked + .slider:before { transform: translateX(26px); }
+
+        .refresh-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 56px; height: 56px;
+            font-size: 1.8rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 6px 15px rgba(255, 87, 34, 0.4);
+            transition: transform 0.2s;
+        }
+        
+        .refresh-btn:active { transform: rotate(180deg) scale(0.9); }
+
+        /* --- 移动端适配更新 --- */
+        @media (max-width: 600px) {
+            .card { 
+                /* 移动端也相应加大 */
+                width: 120px; height: 170px; 
+                font-size: 5rem; 
+                border-width: 5px;
+                border-bottom-width: 10px;
+                border-radius: 18px;
+            }
+            .card.qizai { border-width: 5px; border-bottom-width: 10px; }
+            .card:active, .card.qizai:active { border-bottom-width: 5px; }
+            .card.qizai img { border-radius: 13px; }
+
+            #game-board { gap: 15px; padding-top: 20px; }
+            .header-img { max-height: 120px; } /* 手机上还是限制一下高度，不然太大 */
+            #settings-panel { width: 88%; justify-content: space-between; bottom: 20px; padding: 8px 20px; gap: 10px;}
+            .switch-container { font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="overlay"></div>
+    <a href="../index.html" class="home-btn">🏠 主页</a>
+
+    <header>
+        <img src="../images/sztitle1.png" alt="数字捉迷藏" class="header-img">
+        <p class="subtitle">找找看，谁藏起来了？</p>
+    </header>
+
+    <div id="game-board">
+        </div>
+
+    <div id="settings-panel">
+        <div class="switch-container">
+            <span>乱乱的</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="order-toggle">
+                <span class="slider"></span>
+            </label>
+            <span>排排队</span>
+        </div>
+        <button class="refresh-btn" onclick="initGame()" title="重来">↻</button>
+    </div>
+
+    <script>
+        const items = [1, 2, 3, 4, 5, 6, 7, 8, 9, 'Qizai'];
+        const board = document.getElementById('game-board');
+        const orderToggle = document.getElementById('order-toggle');
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function generateCardData() {
+            const count = getRandomInt(6, 10);
+            let pool = [...items];
+            shuffleArray(pool);
+            let selected = pool.slice(0, count);
+            const isSequential = orderToggle.checked;
+
+            if (isSequential) {
+                let numbers = selected.filter(item => item !== 'Qizai');
+                let hasQizai = selected.includes('Qizai');
+                numbers.sort((a, b) => a - b);
+                if (hasQizai) {
+                    const atStart = Math.random() < 0.5;
+                    selected = atStart ? ['Qizai', ...numbers] : [...numbers, 'Qizai'];
+                } else {
+                    selected = numbers;
+                }
+            }
+            return selected;
+        }
+
+        function initGame() {
+            const cardsData = generateCardData();
+            board.innerHTML = ''; 
+
+            cardsData.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.style.animationDelay = `${index * 0.05}s`;
+
+                if (item === 'Qizai') {
+                    card.classList.add('qizai');
+                    const qizaiImg = document.createElement('img');
+                    qizaiImg.src = "../images/qizai.jpg";
+                    qizaiImg.alt = "七仔";
+                    qizaiImg.onerror = function() {
+                        card.innerHTML = "🐼<br>七仔";
+                        card.style.flexDirection = "column";
+                        card.style.fontSize = "2rem";
+                        card.style.color = "white";
+                        card.style.borderBottomColor = "#B39DDB";
+                    }
+                    card.appendChild(qizaiImg);
+                } else {
+                    card.textContent = item;
+                }
+
+                card.onclick = () => {
+                   if (navigator.vibrate) navigator.vibrate(10);
+                }
+
+                board.appendChild(card);
+            });
+        }
+
+        orderToggle.addEventListener('change', () => {
+            initGame();
+            if (navigator.vibrate) navigator.vibrate(30);
+        });
+
+        initGame();
+    </script>
+</body>
+</html>

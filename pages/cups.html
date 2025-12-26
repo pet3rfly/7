@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>谁的杯子？ - 多少与胖瘦</title>
+    <style>
+        :root {
+            --glass-border: rgba(255, 255, 255, 0.9);
+            --glass-bg: rgba(255, 255, 255, 0.25);
+            --water-color: #4FC3F7; 
+            --water-top-color: #81D4FA;
+            --primary-color: #FF8A65;
+            --text-color: #37474F;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-image: url('../images/szzmcbg.jpg');
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-size: cover;
+            font-family: "Comic Sans MS", "YouYuan", "幼圆", sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            user-select: none;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* --- 主页按钮样式 --- */
+        .home-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 8px 15px;
+            border-radius: 20px;
+            text-decoration: none;
+            color: var(--primary-color);
+            font-weight: bold;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border: 3px solid #fff;
+            z-index: 200;
+            transition: transform 0.2s;
+        }
+        .home-btn:active { transform: scale(0.9); }
+
+        header {
+            text-align: center;
+            padding: 25px;
+        }
+
+        h1 {
+            margin: 0;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-size: 3rem; /* 标题加大 */
+            background-color: rgba(255, 138, 101, 0.95);
+            display: inline-block;
+            padding: 15px 40px;
+            border-radius: 60px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+            border: 4px solid #fff;
+        }
+
+        p {
+            margin-top: 15px;
+            font-weight: bold;
+            color: #455A64;
+            background: rgba(255,255,255,0.8);
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 1.2rem;
+        }
+
+        #game-board {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 25px;
+            padding: 30px 10px 120px; /* 底部留空间给按钮 */
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* 卡片容器 - 整体加大 */
+        .card-container {
+            width: 180px;  /* 宽度加大 */
+            height: 320px; /* 高度加大 */
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 10px;
+            border: 5px solid #fff;
+            transition: transform 0.2s;
+        }
+
+        .card-container:hover {
+            transform: translateY(-8px);
+        }
+
+        .cup-wrapper {
+            height: 200px; /* 杯子活动区域增高 */
+            width: 100%;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .cup {
+            /* 宽度通过JS控制，但最大宽度受限于容器 */
+            max-width: 100%; 
+            border: 5px solid var(--glass-border);
+            border-top: none;
+            background-color: var(--glass-bg);
+            border-radius: 0 0 20px 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 -5px 10px rgba(255,255,255,0.5), 0 5px 15px rgba(0,0,0,0.1);
+            transition: width 0.5s ease;
+        }
+
+        .water {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 0%; 
+            background: linear-gradient(to top, var(--water-color), var(--water-top-color));
+            transition: height 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            opacity: 0.9;
+        }
+
+        .water::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 5px;
+            background: rgba(255,255,255,0.6);
+        }
+
+        /* 下半部分：图标加大 */
+        .icon-area {
+            width: 80px; /* 图标加大 */
+            height: 80px;
+            border-radius: 50%;
+            background-color: #ECEFF1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 4px solid #CFD8DC;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--text-color);
+            overflow: hidden;
+        }
+
+        .icon-area img {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+
+        /* 刷新按钮 - 底部居中 */
+        .refresh-btn {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%); /* 居中黑科技 */
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 70px; height: 70px; /* 按钮加大 */
+            font-size: 2.2rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+            z-index: 100;
+            border: 4px solid #fff;
+        }
+        
+        .refresh-btn:active { transform: translateX(-50%) rotate(180deg) scale(0.9); }
+
+        @media (max-width: 600px) {
+            /* 手机端适配：保持一行两个，但比例要调整 */
+            .card-container { width: 42%; height: 260px; margin-bottom: 10px; }
+            .cup-wrapper { height: 150px; }
+            .icon-area { width: 60px; height: 60px; font-size: 2rem;}
+            h1 { font-size: 1.8rem; padding: 10px 25px; }
+            .home-btn { top: 15px; right: 15px; font-size: 1rem; padding: 6px 12px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="overlay"></div>
+
+    <a href="../index.html" class="home-btn">🏠 主页</a>
+
+    <header>
+        <h1>🥛 谁的杯子？</h1>
+        <p>比一比：谁的水多？谁的杯子胖？</p>
+    </header>
+
+    <div id="game-board">
+        </div>
+
+    <button class="refresh-btn" onclick="initGame()">↻</button>
+
+    <script>
+        const items = [
+            { label: 'Qizai', type: 'img', src: '../images/qizaitx.jpg' },
+            { label: '1', type: 'text' }, { label: '2', type: 'text' },
+            { label: '3', type: 'text' }, { label: '4', type: 'text' },
+            { label: '5', type: 'text' }, { label: '6', type: 'text' },
+            { label: '7', type: 'text' }, { label: '8', type: 'text' },
+            { label: '9', type: 'text' }
+        ];
+
+        const board = document.getElementById('game-board');
+
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function initGame() {
+            board.innerHTML = ''; 
+            items.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'card-container';
+
+                // 宽度加大范围：40px - 110px (因为容器变宽了)
+                const cupWidth = getRandomInt(40, 110); 
+                const waterHeight = getRandomInt(10, 95);
+                const cupHeight = 160; // 配合 .cup-wrapper 的高度
+
+                const cupWrapper = document.createElement('div');
+                cupWrapper.className = 'cup-wrapper';
+                
+                const cup = document.createElement('div');
+                cup.className = 'cup';
+                cup.style.width = `${cupWidth}px`;
+                cup.style.height = `${cupHeight}px`;
+
+                const water = document.createElement('div');
+                water.className = 'water';
+                setTimeout(() => {
+                    water.style.height = `${waterHeight}%`;
+                }, 100 + index * 100);
+
+                cup.appendChild(water);
+                cupWrapper.appendChild(cup);
+
+                const iconArea = document.createElement('div');
+                iconArea.className = 'icon-area';
+
+                if (item.type === 'img') {
+                    const img = document.createElement('img');
+                    img.src = item.src;
+                    img.alt = "七仔";
+                    img.onerror = function() { iconArea.innerHTML = "🐼"; }
+                    iconArea.appendChild(img);
+                    iconArea.style.borderColor = "#9575CD"; 
+                } else {
+                    iconArea.textContent = item.label;
+                    iconArea.style.color = "#FF7043"; 
+                }
+
+                card.appendChild(cupWrapper);
+                card.appendChild(iconArea);
+                board.appendChild(card);
+            });
+        }
+        initGame();
+    </script>
+</body>
+</html>

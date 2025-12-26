@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>午饭吃什么？ - 丰盛午餐</title>
+    <style>
+        :root {
+            --card-bg: #FFFFFF;
+            --card-shadow: 0 15px 30px rgba(0,0,0,0.15); /* 统一阴影 */
+            --primary-color: #FB8C00; /* 午餐主色调：暖橙色 */
+            --meat-color: #EF5350;    /* 荤菜红 */
+            --veg-color: #66BB6A;     /* 素菜绿 */
+            --soup-color: #42A5F5;    /* 汤类蓝 */
+            --staple-color: #FFA726;  /* 主食橙 */
+            --text-color: #3E2723;
+            --text-color-light: #8D6E63; 
+        }
+
+        body {
+            margin: 0; padding: 0;
+            background-image: url('../images/szzmcbg.jpg');
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-size: cover;
+            font-family: "Comic Sans MS", "YouYuan", "幼圆", sans-serif;
+            min-height: 100vh;
+            display: flex; flex-direction: column;
+            user-select: none;
+            padding-bottom: 240px; 
+            box-sizing: border-box;
+        }
+
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.6); 
+            pointer-events: none; z-index: -1;
+        }
+
+        .home-btn {
+            position: fixed; top: 20px; right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px 18px; border-radius: 30px;
+            text-decoration: none; color: var(--primary-color);
+            font-weight: bold; border: 3px solid #fff;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15); z-index: 200;
+            transition: transform 0.2s;
+        }
+        .home-btn:active { transform: scale(0.95); }
+
+        header { text-align: center; padding: 25px 10px; flex-shrink: 0; }
+
+        h1 {
+            margin: 0; color: #fff;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.2);
+            font-size: 2.8rem;
+            background-color: var(--primary-color);
+            display: inline-block; padding: 12px 40px;
+            border-radius: 60px; border: 5px solid #fff;
+            box-shadow: 0 6px 0px #E65100, 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        /* --- 核心布局修改 --- */
+        #game-board {
+            flex: 1; 
+            display: flex; 
+            flex-wrap: wrap;
+            justify-content: center; 
+            align-content: center; /* 垂直居中 */
+            gap: 30px; /* 间距加大 */
+            padding: 20px;
+            /* 限制最大宽度，确保一行最多4个 (200*4 + 30*3 = 890px) */
+            max-width: 1000px; 
+            margin: 0 auto;
+        }
+
+        /* --- 卡片尺寸升级 (同步早餐页) --- */
+        .card {
+            width: 200px;  /* 加大 */
+            height: 290px; /* 加大 */
+            background-color: var(--card-bg);
+            border-radius: 25px;
+            box-shadow: var(--card-shadow);
+            display: flex; flex-direction: column;
+            align-items: center; overflow: hidden;
+            border: 6px solid #fff; /* 边框加粗 */
+            position: relative;
+            animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+            transition: all 0.3s ease; cursor: pointer;
+        }
+        
+        .card:hover { 
+            transform: translateY(-10px) scale(1.03); 
+            box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+        }
+
+        .card-img-box {
+            width: 100%; 
+            height: 180px; /* 图片加高 */
+            background-color: #FFF3E0;
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden;
+        }
+        
+        .card-img-box img { 
+            width: 100%; height: 100%; object-fit: cover; 
+            transition: transform 0.5s;
+        }
+        .card:hover .card-img-box img { transform: scale(1.1); }
+
+        .card-text-area {
+            flex: 1; width: 100%;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            background-color: #fff;
+            border-top: 3px dashed #FFE0B2; padding: 5px 0;
+        }
+
+        .zh-name { 
+            font-size: 1.4rem; /* 字体加大 */
+            font-weight: 900; color: var(--text-color); 
+            margin-bottom: 2px; text-align: center;
+            line-height: 1.2;
+        }
+        
+        .en-row { display: flex; align-items: center; gap: 6px; margin-top: 2px;}
+        
+        .en-name { 
+            font-size: 0.9rem; color: var(--text-color-light); 
+            font-weight: bold; font-family: "Comic Sans MS", cursive, sans-serif; 
+            text-align: center; max-width: 140px; 
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        .speak-btn {
+            background: #FFECB3; border: none; color: #FF6F00;
+            width: 26px; height: 26px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem; cursor: pointer; flex-shrink: 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.1s, background 0.2s;
+        }
+        .speak-btn:hover { background: #FFD54F; transform: scale(1.1); }
+        .speak-btn:active { transform: scale(0.9); background: #FFCA28; }
+
+
+        /* 顶部分类条 */
+        .category-tag {
+            position: absolute; top: 0; left: 0; width: 100%; height: 10px; /* 加厚一点 */
+            z-index: 10;
+        }
+        .tag-staple { background-color: var(--staple-color); }
+        .tag-meat { background-color: var(--meat-color); }
+        .tag-veg { background-color: var(--veg-color); }
+        .tag-soup { background-color: var(--soup-color); }
+
+        /* 左上角斜标签 */
+        .corner-label {
+            position: absolute; top: 12px; left: -35px;
+            padding: 6px 40px; transform: rotate(-45deg);
+            font-size: 0.85rem; font-weight: bold; color: white;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.2); z-index: 11;
+        }
+        .bg-staple { background-color: var(--staple-color); }
+        .bg-meat { background-color: var(--meat-color); }
+        .bg-veg { background-color: var(--veg-color); }
+        .bg-soup { background-color: var(--soup-color); }
+
+        @keyframes popIn {
+            from { transform: scale(0.5) translateY(100px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        /* --- 控制面板 --- */
+        #controls {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            width: 94%; max-width: 700px;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px);
+            padding: 20px 25px; border-radius: 35px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.25);
+            border: 5px solid #FFCC80;
+            display: flex; flex-direction: column; gap: 15px; z-index: 100;
+        }
+
+        .control-group { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+        
+        .control-item {
+            flex: 1; min-width: 150px;
+            display: flex; align-items: center; justify-content: space-between;
+            background: #FFF3E0; padding: 10px 18px; border-radius: 25px;
+        }
+
+        .label { font-weight: 800; color: #E65100; font-size: 1.1rem; margin-right: 5px;}
+
+        .pill-selector { display: flex; background: #fff; border-radius: 18px; padding: 4px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
+        .pill-selector label {
+            padding: 6px 15px; border-radius: 14px; cursor: pointer;
+            font-size: 1rem; font-weight: bold; color: #8D6E63; transition: 0.2s;
+        }
+        .pill-selector input { display: none; }
+        .pill-selector input:checked + span {
+            background: var(--primary-color); color: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .pill-selector span { display: block; padding: 4px 10px; border-radius: 10px; }
+
+        .refresh-btn {
+            background-color: var(--primary-color); color: white;
+            border: none; border-radius: 60px; width: 100%; padding: 15px;
+            font-size: 1.6rem; font-weight: 900; cursor: pointer;
+            box-shadow: 0 6px 0 #E65100, 0 10px 20px rgba(230, 81, 0, 0.2);
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+            transition: all 0.1s;
+        }
+        .refresh-btn:active { transform: translateY(6px); box-shadow: 0 0 0 #E65100; }
+        .refresh-btn:hover { background-color: #F57C00; }
+
+        @media (max-width: 768px) {
+            /* 手机端保持2列布局 */
+            .card { width: 150px; height: 230px; border-width: 4px; }
+            .card-img-box { height: 135px; }
+            .zh-name { font-size: 1.2rem; }
+            .en-name { font-size: 0.8rem; max-width: 110px; }
+            #controls { padding: 15px; width: 90%; gap: 10px; bottom: 20px; }
+            .control-item { padding: 8px 12px; }
+            .label { font-size: 0.95rem; }
+            .pill-selector label { padding: 5px 10px; font-size: 0.9rem; }
+            h1 { font-size: 2rem; padding: 10px 30px; }
+            body { padding-bottom: 280px; }
+            #game-board { gap: 15px; padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="overlay"></div>
+    <a href="../index.html" class="home-btn">🏠 主页</a>
+
+    <header>
+        <h1>🍱 午饭吃什么？</h1>
+    </header>
+
+    <div id="game-board">
+        </div>
+
+    <div id="controls">
+        <div class="control-group">
+            <div class="control-item">
+                <span class="label">🍖 荤菜 Meat</span>
+                <div class="pill-selector">
+                    <label><input type="radio" name="meat" value="1" checked><span>1个</span></label>
+                    <label><input type="radio" name="meat" value="2"><span>2个</span></label>
+                </div>
+            </div>
+            
+            <div class="control-item">
+                <span class="label">🥦 素菜 Veg</span>
+                <div class="pill-selector">
+                    <label><input type="radio" name="veg" value="2" checked><span>2个</span></label>
+                    <label><input type="radio" name="veg" value="3"><span>3个</span></label>
+                </div>
+            </div>
+
+            <div class="control-item">
+                <span class="label">🥣 汤 Soup</span>
+                <div class="pill-selector">
+                    <label><input type="radio" name="soup" value="0" checked><span>No</span></label>
+                    <label><input type="radio" name="soup" value="1"><span>Yes</span></label>
+                </div>
+            </div>
+        </div>
+
+        <button class="refresh-btn" onclick="initGame()">
+            <span>🚀 生成午餐菜单! GO!</span>
+        </button>
+    </div>
+
+    <script>
+        const staples = [
+            { name: '米饭', en: 'Rice', img: '../images/mifan.png' },
+            { name: '紫薯米饭', en: 'Purple Rice', img: '../images/zishumifan.png' },
+            { name: '黄金软饭', en: 'Millet Rice', img: '../images/huangjinruanfan.png' },
+            { name: '馒头', en: 'Steamed Bun', img: '../images/mantou.png' }
+        ];
+
+        const meats = [
+            { name: '红烧排骨', en: 'Braised Ribs', img: '../images/hongshaopaigu.png' },
+            { name: '蒸鱼', en: 'Steamed Fish', img: '../images/zhengyu.png' },
+            { name: '红烧肉', en: 'Braised Pork', img: '../images/hongshaorou.png' },
+            { name: '鸡腿', en: 'Chicken Leg', img: '../images/jitui.png' },
+            { name: '可乐鸡翅', en: 'Cola Chicken Wings', img: '../images/kelejichi.png' },
+            { name: '糖醋里脊', en: 'Sweet & Sour Pork', img: '../images/tangculiji.png' },
+            { name: '油爆虾', en: 'Stir-fried Shrimp', img: '../images/youbaoxia.png' }
+        ];
+
+        const vegs = [
+            { name: '西红柿炒蛋', en: 'Tomato Eggs', img: '../images/xihongshichaodan.png' },
+            { name: '西兰花', en: 'Broccoli', img: '../images/xilanhua.png' },
+            { name: '炒青菜', en: 'Stir-fried Greens', img: '../images/chaoqingcai.png' },
+            { name: '豆角烧肉', en: 'Green beans braised with pork', img: '../images/doujiaoshaorou.png' },
+            { name: '炒西葫芦', en: 'Zucchini', img: '../images/chaoxihulu.png' },
+            { name: '萝卜烧肉', en: 'Braised pork with radish', img: '../images/luoboshaorou.png' },
+            { name: '豌豆玉米虾仁', en: 'Peas corn and shrimp', img: '../images/wandouyumi.png' },
+            { name: '清炒荷兰豆', en: 'Snow Peas', img: '../images/helandou.png' }
+        ];
+
+        const soups = [
+            { name: '虾米鸡蛋汤', en: 'Shrimp Egg Soup', img: '../images/xiamijidantang.png' },
+            { name: '紫菜蛋汤', en: 'Seaweed Egg Soup', img: '../images/zicaidantang.png' },
+            { name: '西红柿蛋汤', en: 'Tomato Egg Soup', img: '../images/xihongshidantang.png' },
+            { name: '海带排骨汤', en: 'Kelp Rib Soup', img: '../images/haidaipaigu.png' },
+            { name: '玉米排骨汤', en: 'Corn Rib Soup', img: '../images/yumipaigu.png' }
+        ];
+
+        const board = document.getElementById('game-board');
+
+        function speakText(text, event) {
+            if(event) event.stopPropagation();
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US'; 
+                utterance.rate = 0.9;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function shuffleArray(array) {
+            let arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function generateMenu() {
+            const meatCount = parseInt(document.querySelector('input[name="meat"]:checked').value);
+            const vegCount = parseInt(document.querySelector('input[name="veg"]:checked').value);
+            const hasSoup = document.querySelector('input[name="soup"]:checked').value === "1";
+
+            const selectedStaple = staples[Math.floor(Math.random() * staples.length)];
+            selectedStaple.type = 'staple'; 
+            selectedStaple.label = '主食';
+
+            const shuffledMeats = shuffleArray(meats);
+            const selectedMeats = shuffledMeats.slice(0, meatCount).map(item => ({...item, type: 'meat', label: '荤菜'}));
+
+            const shuffledVegs = shuffleArray(vegs);
+            const selectedVegs = shuffledVegs.slice(0, vegCount).map(item => ({...item, type: 'veg', label: '素菜'}));
+
+            let selectedSoup = [];
+            if (hasSoup) {
+                const soup = soups[Math.floor(Math.random() * soups.length)];
+                selectedSoup.push({...soup, type: 'soup', label: '汤'});
+            }
+
+            return [selectedStaple, ...selectedMeats, ...selectedVegs, ...selectedSoup];
+        }
+
+        function initGame() {
+            const menu = generateMenu();
+            board.innerHTML = '';
+
+            menu.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.style.animationDelay = `${index * 0.1}s`; 
+
+                card.innerHTML = `
+                    <div class="category-tag tag-${item.type}"></div>
+                    <div class="corner-label bg-${item.type}">${item.label}</div>
+                    <div class="card-img-box">
+                        <img src="${item.img}" alt="${item.name}" onerror="this.style.display='none'; this.parentNode.innerHTML='🥗'; this.parentNode.style.fontSize='4rem';">
+                    </div>
+                    <div class="card-text-area">
+                        <span class="zh-name">${item.name}</span>
+                        <div class="en-row">
+                            <span class="en-name">${item.en}</span>
+                            <button class="speak-btn" onclick="speakText('${item.en}', event)">🔊</button>
+                        </div>
+                    </div>
+                `;
+                
+                card.onclick = () => {
+                     if (navigator.vibrate) navigator.vibrate(20);
+                }
+
+                board.appendChild(card);
+            });
+        }
+
+        initGame();
+    </script>
+</body>
+</html>

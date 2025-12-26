@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>水果吃什么？ - 每日维C</title>
+    <style>
+        :root {
+            --card-bg: #FFFFFF;
+            --card-shadow: 0 15px 30px rgba(0,0,0,0.15);
+            --primary-color: #F06292; /* 水果主题：清新的玫粉色 */
+            --text-color: #4A148C;    /* 深紫色文字，对比度好 */
+            --text-color-light: #AD1457; 
+        }
+
+        body {
+            margin: 0; padding: 0;
+            background-image: url('../images/szzmcbg.jpg');
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-size: cover;
+            font-family: "Comic Sans MS", "YouYuan", "幼圆", sans-serif;
+            min-height: 100vh;
+            display: flex; flex-direction: column;
+            user-select: none;
+            padding-bottom: 180px; /* 底部留空给控制面板 */
+            box-sizing: border-box;
+        }
+
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.6); 
+            pointer-events: none; z-index: -1;
+        }
+
+        .home-btn {
+            position: fixed; top: 20px; right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px 18px; border-radius: 30px;
+            text-decoration: none; color: var(--primary-color);
+            font-weight: bold; border: 3px solid #fff;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15); z-index: 200;
+            transition: transform 0.2s;
+        }
+        .home-btn:active { transform: scale(0.95); }
+
+        header { text-align: center; padding: 25px 10px; flex-shrink: 0; }
+
+        h1 {
+            margin: 0; color: #fff;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.2);
+            font-size: 2.8rem;
+            background-color: var(--primary-color);
+            display: inline-block; padding: 12px 40px;
+            border-radius: 60px; border: 5px solid #fff;
+            box-shadow: 0 6px 0px #C2185B, 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        /* --- 核心布局：居中和大卡片 --- */
+        #game-board {
+            flex: 1; 
+            display: flex; 
+            flex-wrap: wrap;
+            justify-content: center; 
+            align-content: center; /* 垂直居中 */
+            gap: 30px;
+            padding: 20px;
+            max-width: 1000px; 
+            margin: 0 auto;
+        }
+
+        .card {
+            width: 200px;  /* 大尺寸 */
+            height: 290px; /* 大尺寸 */
+            background-color: var(--card-bg);
+            border-radius: 25px;
+            box-shadow: var(--card-shadow);
+            display: flex; flex-direction: column;
+            align-items: center; overflow: hidden;
+            border: 6px solid #fff;
+            position: relative;
+            animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+            transition: all 0.3s ease; cursor: pointer;
+        }
+        
+        .card:hover { 
+            transform: translateY(-10px) scale(1.03); 
+            box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+        }
+
+        .card-img-box {
+            width: 100%; 
+            height: 180px; /* 图片区域大 */
+            background-color: #FCE4EC; /* 淡淡的粉色背景 */
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden;
+        }
+        
+        .card-img-box img { 
+            width: 100%; height: 100%; object-fit: cover; 
+            transition: transform 0.5s;
+        }
+        .card:hover .card-img-box img { transform: scale(1.1); }
+
+        .card-text-area {
+            flex: 1; width: 100%;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            background-color: #fff;
+            border-top: 3px dashed #F8BBD0; padding: 5px 0;
+        }
+
+        .zh-name { 
+            font-size: 1.5rem;
+            font-weight: 900; color: var(--text-color); 
+            margin-bottom: 2px; text-align: center;
+            line-height: 1.2;
+        }
+        
+        .en-row { display: flex; align-items: center; gap: 6px; margin-top: 2px;}
+        
+        .en-name { 
+            font-size: 1rem; color: var(--text-color-light); 
+            font-weight: bold; font-family: "Comic Sans MS", cursive, sans-serif; 
+        }
+
+        .speak-btn {
+            background: #F8BBD0; border: none; color: #C2185B;
+            width: 28px; height: 28px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; cursor: pointer; flex-shrink: 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.1s, background 0.2s;
+        }
+        .speak-btn:hover { background: #F48FB1; transform: scale(1.1); }
+        .speak-btn:active { transform: scale(0.9); background: #F06292; }
+
+        @keyframes popIn {
+            from { transform: scale(0.5) translateY(100px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        /* --- 控制面板（简化版） --- */
+        #controls {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 500px; /* 宽度减小，因为内容少了 */
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px);
+            padding: 20px 25px; border-radius: 35px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.25);
+            border: 5px solid #F8BBD0;
+            display: flex; flex-direction: column; gap: 18px; z-index: 100;
+        }
+
+        .control-row {
+            display: flex; align-items: center; justify-content: space-between; gap: 10px;
+        }
+
+        .label { font-weight: 900; color: var(--primary-color); font-size: 1.2rem; }
+
+        .count-selector { display: flex; background: #F8BBD0; border-radius: 25px; padding: 5px; }
+        .count-selector label { padding: 10px 24px; border-radius: 20px; cursor: pointer; font-weight: bold; color: #fff; transition: 0.3s; font-size: 1.1rem; }
+        .count-selector input[type="radio"] { display: none; }
+        .count-selector input:checked + span { background: #fff; color: var(--primary-color); box-shadow: 0 4px 10px rgba(0,0,0,0.1); transform: scale(1.05); }
+        .count-selector span { display: block; padding: 5px 15px; border-radius: 15px; transition: all 0.2s; }
+
+        .refresh-btn {
+            background-color: var(--primary-color); color: white;
+            border: none; border-radius: 60px; width: 100%; padding: 15px;
+            font-size: 1.8rem; font-weight: 900; cursor: pointer;
+            box-shadow: 0 6px 0 #C2185B, 0 10px 20px rgba(194, 24, 91, 0.3);
+            display: flex; align-items: center; justify-content: center; gap: 15px;
+            transition: all 0.1s;
+        }
+        .refresh-btn:active { transform: translateY(6px); box-shadow: 0 0 0 #C2185B; }
+        .refresh-btn:hover { background-color: #E91E63; }
+
+        @media (max-width: 768px) {
+            body { padding-bottom: 200px; }
+            .card { width: 150px; height: 230px; border-width: 4px; }
+            .card-img-box { height: 135px; }
+            .zh-name { font-size: 1.2rem; }
+            .en-name { font-size: 0.9rem; }
+            #controls { bottom: 20px; padding: 15px 20px; width: 90%; gap: 15px; }
+            h1 { font-size: 2rem; padding: 10px 30px;}
+            .label { font-size: 1rem; }
+            .count-selector label { padding: 8px 15px; font-size: 1rem; }
+            .refresh-btn { font-size: 1.4rem; padding: 12px; }
+            #game-board { gap: 15px; padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="overlay"></div>
+    <a href="../index.html" class="home-btn">🏠 主页</a>
+
+    <header>
+        <h1>🍎 水果吃什么？</h1>
+    </header>
+
+    <div id="game-board">
+        </div>
+
+    <div id="controls">
+        <div class="control-row">
+            <div class="label">我要吃几样：</div>
+            <div class="count-selector">
+                <label><input type="radio" name="count" value="2" checked onchange="initGame()"><span>2样</span></label>
+                <label><input type="radio" name="count" value="3" onchange="initGame()"><span>3样</span></label>
+                <label><input type="radio" name="count" value="4" onchange="initGame()"><span>4样</span></label>
+            </div>
+        </div>
+
+        <button class="refresh-btn" onclick="initGame()">
+            <span>🍓 挑选维C鲜果! GO!</span>
+        </button>
+    </div>
+
+    <script>
+        // --- 1. 水果数据定义 (使用 .png) ---
+        const fruits = [
+            { name: '葡萄', en: 'Grapes', img: '../images/putao.png' },
+            { name: '芒果', en: 'Mango', img: '../images/mangguo.png' },
+            { name: '西瓜', en: 'Watermelon', img: '../images/xigua.png' },
+            { name: '橙子', en: 'Orange', img: '../images/chengzi.png' },
+            { name: '草莓', en: 'Strawberry', img: '../images/caomei.png' },
+            { name: '苹果', en: 'Apple', img: '../images/pingguo.png' },
+            { name: '梨子', en: 'Pear', img: '../images/lizi.png' },
+            { name: '猕猴桃', en: 'Kiwi', img: '../images/mihoutao.png' },
+            { name: '樱桃', en: 'Cherry', img: '../images/yingtao.png' },
+            { name: '哈密瓜', en: 'Cantaloupe', img: '../images/hamigua.png' },
+            { name: '香蕉', en: 'Banana', img: '../images/xiangjiao.png' },
+            { name: '桃子', en: 'Peach', img: '../images/taozi.png' }
+        ];
+
+        const board = document.getElementById('game-board');
+
+        function speakText(text, event) {
+            if(event) event.stopPropagation();
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US'; 
+                utterance.rate = 0.9;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function shuffleArray(array) {
+            let arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        // --- 核心逻辑：简单随机抽取 ---
+        function generateMenu() {
+            const countInput = document.querySelector('input[name="count"]:checked');
+            const totalCount = parseInt(countInput.value);
+            
+            // 打乱所有水果
+            const shuffledFruits = shuffleArray(fruits);
+            // 截取前 N 个
+            return shuffledFruits.slice(0, totalCount);
+        }
+
+        function initGame() {
+            const menu = generateMenu();
+            board.innerHTML = '';
+
+            menu.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.style.animationDelay = `${index * 0.12}s`; 
+
+                // 渲染卡片 (结构比午餐简单，没有分类标签)
+                card.innerHTML = `
+                    <div class="card-img-box">
+                        <img src="${item.img}" alt="${item.name}" onerror="this.style.display='none'; this.parentNode.innerHTML='🍎'; this.parentNode.style.fontSize='4rem';">
+                    </div>
+                    <div class="card-text-area">
+                        <span class="zh-name">${item.name}</span>
+                        <div class="en-row">
+                            <span class="en-name">${item.en}</span>
+                            <button class="speak-btn" onclick="speakText('${item.en}', event)">🔊</button>
+                        </div>
+                    </div>
+                `;
+                
+                card.onclick = () => {
+                     if (navigator.vibrate) navigator.vibrate(20);
+                }
+
+                board.appendChild(card);
+            });
+        }
+
+        initGame();
+    </script>
+</body>
+</html>

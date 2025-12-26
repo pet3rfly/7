@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>我的ABC - 英语启蒙</title>
+    <style>
+        :root {
+            --card-bg: #FFFFFF;
+            --card-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            /* 默认是动物版的主色调 */
+            --primary-color: #4DB6AC; /* 动物绿 */
+            --accent-color: #FF7043;
+            --text-color: #37474F;
+        }
+
+        /* 蔬果版的主色调 (通过JS切换类名实现) */
+        body.mode-plant {
+            --primary-color: #8BC34A; /* 蔬果嫩绿 */
+            --accent-color: #E91E63;
+        }
+        
+        body {
+            margin: 0; padding: 0;
+            background-image: url('../images/szzmcbg.jpg');
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-size: cover;
+            font-family: "Comic Sans MS", "YouYuan", "幼圆", sans-serif;
+            min-height: 100vh;
+            display: flex; flex-direction: column;
+            user-select: none;
+            padding-bottom: 220px;
+            box-sizing: border-box;
+            transition: all 0.5s ease;
+        }
+
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.6); 
+            pointer-events: none; z-index: -1;
+        }
+
+        .home-btn {
+            position: fixed; top: 20px; right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px 18px; border-radius: 30px;
+            text-decoration: none; color: var(--primary-color);
+            font-weight: bold; border: 3px solid #fff;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15); z-index: 200;
+        }
+
+        header { text-align: center; padding: 25px 10px; flex-shrink: 0; }
+
+        h1 {
+            margin: 0; color: #fff;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.2);
+            font-size: 2.8rem;
+            background-color: var(--primary-color);
+            display: inline-block; padding: 12px 40px;
+            border-radius: 60px; border: 5px solid #fff;
+            box-shadow: 0 6px 0px rgba(0,0,0,0.2), 0 10px 20px rgba(0,0,0,0.2);
+            transition: background-color 0.3s;
+        }
+
+        #game-board {
+            flex: 1; 
+            display: flex; 
+            flex-wrap: wrap;
+            justify-content: center; 
+            align-content: center;
+            gap: 25px;
+            padding: 20px;
+            max-width: 1200px; 
+            margin: 0 auto;
+        }
+
+        /* --- 卡片样式 --- */
+        .card {
+            width: 220px;  /* 再大一点，字母要清楚 */
+            height: 320px;
+            background-color: var(--card-bg);
+            border-radius: 30px;
+            box-shadow: var(--card-shadow);
+            display: flex; flex-direction: column;
+            align-items: center; overflow: hidden;
+            border: 6px solid #fff;
+            position: relative;
+            animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+            transition: all 0.3s ease; cursor: pointer;
+        }
+        
+        .card:hover { 
+            transform: translateY(-12px) scale(1.03); 
+            box-shadow: 0 30px 60px rgba(0,0,0,0.2);
+        }
+
+        .card-img-box {
+            width: 100%; height: 200px; /* 图片占比大 */
+            background-color: #E0F2F1; /* 默认浅绿 */
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden; transition: background-color 0.3s;
+        }
+        body.mode-plant .card-img-box { background-color: #F1F8E9; } /* 蔬果模式浅绿 */
+        
+        .card-img-box img { 
+            width: 100%; height: 100%; object-fit: cover; 
+            transition: transform 0.5s;
+        }
+        .card:hover .card-img-box img { transform: scale(1.1); }
+
+        .card-text-area {
+            flex: 1; width: 100%;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            background-color: #fff;
+            border-top: 4px dashed var(--primary-color); 
+            padding: 5px 0;
+            position: relative;
+        }
+
+        /* 字母展示 */
+        .big-letter {
+            font-size: 3.5rem; /* 超大字母 */
+            line-height: 1;
+            font-weight: 900;
+            color: var(--primary-color);
+            font-family: "Comic Sans MS", sans-serif;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+        }
+
+        .word-row {
+            display: flex; align-items: center; gap: 8px; margin-top: 5px;
+        }
+
+        .word { font-size: 1.2rem; font-weight: bold; color: var(--text-color); }
+        .zh-word { font-size: 1rem; color: #999; font-weight: normal;}
+
+        .speak-icon {
+            font-size: 1.2rem; color: var(--accent-color);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.5) translateY(100px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.8; }
+        }
+
+        /* --- 控制面板 --- */
+        #controls {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 600px;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px);
+            padding: 20px 25px; border-radius: 40px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.25);
+            border: 5px solid var(--primary-color);
+            display: flex; flex-direction: column; gap: 15px; z-index: 100;
+            transition: border-color 0.3s;
+        }
+
+        .control-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .label { font-weight: 900; color: var(--primary-color); font-size: 1.2rem; }
+
+        /* 数量选择 */
+        .count-selector { display: flex; background: #ECEFF1; border-radius: 25px; padding: 5px; }
+        .count-selector label { padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; color: #90A4AE; transition: 0.3s; }
+        .count-selector input { display: none; }
+        .count-selector input:checked + span { background: #fff; color: var(--primary-color); box-shadow: 0 4px 10px rgba(0,0,0,0.1); transform: scale(1.05); }
+        .count-selector span { display: block; padding: 5px 12px; border-radius: 15px; }
+
+        /* 模式切换开关 */
+        .mode-switch {
+            display: flex; background: #ECEFF1; border-radius: 30px; pading: 5px;
+            position: relative; overflow: hidden; cursor: pointer;
+        }
+        .mode-option {
+            padding: 10px 25px; font-size: 1.1rem; font-weight: bold; color: #90A4AE; z-index: 2; transition: color 0.3s;
+        }
+        .mode-switch.animal-active .opt-animal { color: #fff; }
+        .mode-switch.plant-active .opt-plant { color: #fff; }
+        
+        .mode-bg {
+            position: absolute; top: 0; left: 0; width: 50%; height: 100%;
+            background: var(--primary-color); border-radius: 30px;
+            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            z-index: 1;
+        }
+        /* 滑块位置控制 */
+        .mode-switch.plant-active .mode-bg { transform: translateX(100%); }
+
+
+        .refresh-btn {
+            background-color: var(--primary-color); color: white;
+            border: none; border-radius: 60px; width: 100%; padding: 15px;
+            font-size: 1.8rem; font-weight: 900; cursor: pointer;
+            box-shadow: 0 6px 0 rgba(0,0,0,0.2);
+            transition: all 0.2s;
+        }
+        .refresh-btn:active { transform: translateY(6px); box-shadow: none; }
+
+        @media (max-width: 768px) {
+            .card { width: 160px; height: 260px; border-width: 4px; }
+            .card-img-box { height: 150px; }
+            .big-letter { font-size: 2.8rem; }
+            .word { font-size: 1rem; }
+            #controls { bottom: 20px; width: 92%; gap: 15px; }
+            h1 { font-size: 2rem; padding: 10px 30px;}
+        }
+    </style>
+</head>
+<body class="mode-animal"> <div class="overlay"></div>
+    <a href="../index.html" class="home-btn">🏠 主页</a>
+
+    <header>
+        <h1 id="page-title">🦁 我的ABC</h1>
+    </header>
+
+    <div id="game-board">
+        </div>
+
+    <div id="controls">
+        <div class="control-row" style="justify-content: center;">
+            <div class="mode-switch animal-active" id="mode-switch" onclick="toggleMode()">
+                <div class="mode-bg"></div>
+                <div class="mode-option opt-animal">🦁 动物</div>
+                <div class="mode-option opt-plant">🍎 蔬果</div>
+            </div>
+        </div>
+
+        <div class="control-row">
+            <div class="label">看几个：</div>
+            <div class="count-selector">
+                <label><input type="radio" name="count" value="3" checked onchange="initGame()"><span>3个</span></label>
+                <label><input type="radio" name="count" value="4" onchange="initGame()"><span>4个</span></label>
+                <label><input type="radio" name="count" value="5" onchange="initGame()"><span>5个</span></label>
+            </div>
+        </div>
+
+        <button class="refresh-btn" onclick="initGame()">
+            <span>🎲 换一批 Next!</span>
+        </button>
+    </div>
+
+    <script>
+        // --- 数据定义 ---
+        // 注意：图片路径是按照 "字母_类别.png" 自动生成的，无需手动在数组里写 img 路径
+        const animalData = [
+            { L: 'A', en: 'Alligator', zh: '短吻鳄' }, { L: 'B', en: 'Bear', zh: '熊' },
+            { L: 'C', en: 'Cat', zh: '猫' }, { L: 'D', en: 'Dog', zh: '狗' },
+            { L: 'E', en: 'Elephant', zh: '大象' }, { L: 'F', en: 'Fox', zh: '狐狸' },
+            { L: 'G', en: 'Giraffe', zh: '长颈鹿' }, { L: 'H', en: 'Hippo', zh: '河马' },
+            { L: 'I', en: 'Iguana', zh: '鬣蜥' }, { L: 'J', en: 'Jellyfish', zh: '水母' },
+            { L: 'K', en: 'Kangaroo', zh: '袋鼠' }, { L: 'L', en: 'Lion', zh: '狮子' },
+            { L: 'M', en: 'Monkey', zh: '猴子' }, { L: 'N', en: 'Narwhal', zh: '独角鲸' },
+            { L: 'O', en: 'Owl', zh: '猫头鹰' }, { L: 'P', en: 'Panda', zh: '熊猫' },
+            { L: 'Q', en: 'Quail', zh: '鹌鹑' }, { L: 'R', en: 'Rabbit', zh: '兔子' },
+            { L: 'S', en: 'Sheep', zh: '绵羊' }, { L: 'T', en: 'Tiger', zh: '老虎' },
+            { L: 'U', en: 'Unicorn', zh: '独角兽' }, { L: 'V', en: 'Vulture', zh: '秃鹫' },
+            { L: 'W', en: 'Whale', zh: '鲸鱼' }, { L: 'X', en: 'X-ray Fish', zh: 'X光鱼' },
+            { L: 'Y', en: 'Yak', zh: '牦牛' }, { L: 'Z', en: 'Zebra', zh: '斑马' }
+        ];
+
+        const plantData = [
+            { L: 'A', en: 'Apple', zh: '苹果' }, { L: 'B', en: 'Banana', zh: '香蕉' },
+            { L: 'C', en: 'Carrot', zh: '胡萝卜' }, { L: 'D', en: 'Durian', zh: '榴莲' },
+            { L: 'E', en: 'Eggplant', zh: '茄子' }, { L: 'F', en: 'Fig', zh: '无花果' },
+            { L: 'G', en: 'Grape', zh: '葡萄' }, { L: 'H', en: 'Honeydew', zh: '哈密瓜' },
+            { L: 'I', en: 'Iceberg Lettuce', zh: '生菜' }, { L: 'J', en: 'Jackfruit', zh: '菠萝蜜' },
+            { L: 'K', en: 'Kiwi', zh: '猕猴桃' }, { L: 'L', en: 'Lemon', zh: '柠檬' },
+            { L: 'M', en: 'Mango', zh: '芒果' }, { L: 'N', en: 'Nectarine', zh: '油桃' },
+            { L: 'O', en: 'Orange', zh: '橙子' }, { L: 'P', en: 'Pumpkin', zh: '南瓜' },
+            { L: 'Q', en: 'Quince', zh: '榅桲' }, { L: 'R', en: 'Raspberry', zh: '树莓' },
+            { L: 'S', en: 'Strawberry', zh: '草莓' }, { L: 'T', en: 'Tomato', zh: '西红柿' },
+            { L: 'U', en: 'Ugli Fruit', zh: '丑橘' }, { L: 'V', en: 'Vanilla', zh: '香草' },
+            { L: 'W', en: 'Watermelon', zh: '西瓜' }, { L: 'X', en: 'Xigua', zh: '西瓜' },
+            { L: 'Y', en: 'Yam', zh: '山药' }, { L: 'Z', en: 'Zucchini', zh: '西葫芦' }
+        ];
+
+        let currentMode = 'animal'; // 'animal' or 'plant'
+        const board = document.getElementById('game-board');
+
+        // --- 切换模式 ---
+        function toggleMode() {
+            const switchEl = document.getElementById('mode-switch');
+            const body = document.body;
+            const title = document.getElementById('page-title');
+
+            if (currentMode === 'animal') {
+                currentMode = 'plant';
+                switchEl.classList.remove('animal-active');
+                switchEl.classList.add('plant-active');
+                body.classList.remove('mode-animal');
+                body.classList.add('mode-plant');
+                title.textContent = '🍎 我的ABC';
+            } else {
+                currentMode = 'animal';
+                switchEl.classList.remove('plant-active');
+                switchEl.classList.add('animal-active');
+                body.classList.remove('mode-plant');
+                body.classList.add('mode-animal');
+                title.textContent = '🦁 我的ABC';
+            }
+            initGame();
+        }
+
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US'; 
+                utterance.rate = 0.8; // 读得慢一点，清楚一点
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function shuffleArray(array) {
+            let arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function initGame() {
+            const countInput = document.querySelector('input[name="count"]:checked');
+            const totalCount = parseInt(countInput.value);
+            
+            // 1. 根据模式选择数据源
+            const sourceData = currentMode === 'animal' ? animalData : plantData;
+            
+            // 2. 随机抽取
+            const shuffled = shuffleArray(sourceData);
+            const selected = shuffled.slice(0, totalCount);
+
+            board.innerHTML = '';
+
+            selected.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.style.animationDelay = `${index * 0.1}s`; 
+
+                // 3. 自动生成图片路径
+                // 例如: a_animal.png 或 a_plant.png
+                const imgPath = `../images/${item.L.toLowerCase()}_${currentMode}.png`;
+
+                card.innerHTML = `
+                    <div class="card-img-box">
+                        <img src="${imgPath}" alt="${item.en}" onerror="this.style.display='none'; this.parentNode.innerHTML='🎨'; this.parentNode.style.fontSize='4rem';">
+                    </div>
+                    <div class="card-text-area">
+                        <div class="big-letter">${item.L}${item.L.toLowerCase()}</div>
+                        <div class="word-row">
+                            <span class="word">${item.en}</span>
+                            <span class="zh-word">${item.zh}</span>
+                            <span class="speak-icon">🔊</span>
+                        </div>
+                    </div>
+                `;
+                
+                // 点击卡片：发音 + 震动
+                card.onclick = () => {
+                     // 朗读内容："A, Alligator"
+                     speakText(`${item.L}, ${item.en}`);
+                     if (navigator.vibrate) navigator.vibrate(20);
+                }
+
+                board.appendChild(card);
+            });
+        }
+
+        initGame();
+    </script>
+</body>
+</html>
