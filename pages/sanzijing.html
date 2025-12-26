@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>七仔的三字经</title>
+    <style>
+        :root {
+            --bg-color: #F7E8D6; /* 宣纸色 */
+            --primary-color: #C0392B; /* 中国红 */
+            --text-color: #2C3E50; /* 墨色 */
+            --accent-color: #D35400; /* 琉璃黄/深橙 */
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#D7CCC8 1px, transparent 1px);
+            background-size: 20px 20px;
+            font-family: "KaiTi", "STKaiti", "楷体", serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* --- 顶部装饰条 (优化版) --- */
+        .header-deco {
+            height: 90px; /* 高度增加，更大气 */
+            background-color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #FFD700; /* 金色文字 */
+            font-size: 2.2rem; /* 字号加大 */
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 10;
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+            padding-top: 5px; /* 微调文字位置 */
+        }
+        
+        /* 优化的云纹装饰 */
+        .header-deco::after {
+            content: '';
+            position: absolute;
+            bottom: -15px; /* 让波浪垂下来更多一点 */
+            left: 0;
+            width: 100%;
+            height: 30px; /* 波浪高度增加 */
+            /* 使用径向渐变模拟波浪边缘 */
+            background: radial-gradient(circle, var(--primary-color) 15px, transparent 16px);
+            background-size: 40px 50px; /* 波浪更宽大圆润 */
+            background-position: center bottom;
+        }
+
+        .home-btn {
+            position: absolute;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+            text-decoration: none;
+            font-size: 0.9rem;
+            padding: 6px 15px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.4);
+            font-family: sans-serif;
+            font-weight: normal;
+            text-shadow: none;
+        }
+
+        #book-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 1000px;
+            padding: 20px;
+            position: relative;
+        }
+
+        #page-card {
+            width: 85vw;
+            max-width: 400px;
+            aspect-ratio: 3/4;
+            background: #fff;
+            border: 8px solid var(--primary-color);
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2), inset 0 0 60px rgba(192, 57, 43, 0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            outline: 2px solid var(--primary-color);
+            outline-offset: -12px;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+            cursor: pointer;
+        }
+
+        #page-card:active { transform: scale(0.98); }
+
+        .slide-in { animation: slideIn 0.5s ease forwards; }
+
+        @keyframes slideIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .pinyin-row { display: flex; gap: 15px; margin-bottom: 5px; }
+        
+        .char-group { display: flex; flex-direction: column; align-items: center; }
+
+        .pinyin {
+            font-family: Arial, sans-serif;
+            font-size: 1.2rem;
+            color: #7F8C8D;
+            margin-bottom: -5px;
+        }
+
+        .hanzi {
+            font-size: 4rem;
+            font-weight: bold;
+            color: var(--text-color);
+            line-height: 1.2;
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.1);
+        }
+
+        .divider {
+            width: 60%;
+            height: 2px;
+            background: var(--accent-color);
+            margin: 20px 0;
+            opacity: 0.5;
+        }
+
+        .icon-area {
+            margin-top: 15px;
+            font-size: 1.5rem;
+            color: var(--accent-color);
+            opacity: 0.8;
+            animation: floatIcon 3s ease-in-out infinite;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-family: sans-serif;
+            font-weight: bold;
+        }
+        
+        @keyframes floatIcon {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .page-number {
+            position: absolute;
+            bottom: 15px;
+            font-size: 1rem;
+            color: #999;
+            font-family: Arial, sans-serif;
+        }
+
+        /* 底部控制栏 */
+        .controls {
+            height: 120px; /* 底部空间稍微留大一点 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+            padding-bottom: 20px;
+        }
+
+        .nav-btn {
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            border: none;
+            background-color: var(--primary-color);
+            color: #fff;
+            font-size: 1.8rem;
+            box-shadow: 0 5px 15px rgba(192, 57, 43, 0.4);
+            cursor: pointer;
+            transition: transform 0.1s;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .nav-btn:active { transform: scale(0.9); background-color: #A93226; }
+        
+        .auto-play-switch {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.9rem;
+            color: var(--text-color);
+            gap: 8px;
+            font-weight: bold;
+        }
+        
+        .switch-btn {
+            width: 54px;
+            height: 30px;
+            background: #BDC3C7;
+            border-radius: 15px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .switch-btn.active { background: var(--accent-color); }
+        
+        .switch-circle {
+            width: 26px;
+            height: 26px;
+            background: #fff;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px; left: 2px;
+            transition: left 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .switch-btn.active .switch-circle { left: 26px; }
+
+        .hint {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 20;
+        }
+        
+        .hint.show { opacity: 1; }
+
+        /* 手机适配微调 */
+        @media (max-width: 400px) {
+            .hanzi { font-size: 3.5rem; }
+            .pinyin { font-size: 1rem; }
+            #page-card { width: 90vw; padding: 10px; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="header-deco">
+        📜 三字经
+        <a href="../index.html" class="home-btn">🏠 主页</a>
+    </div>
+
+    <div id="book-container">
+        <div id="page-card" onclick="playCurrentAudio()">
+            <div class="sentence-group" id="line1"></div>
+            
+            <div class="divider"></div>
+
+            <div class="sentence-group" id="line2"></div>
+            
+            <div class="icon-area">🔊 点我读</div>
+            <div class="page-number" id="page-num">1 / 12</div>
+        </div>
+        
+        <div class="hint" id="hint-box">已为您朗读</div>
+    </div>
+
+    <div class="controls">
+        <button class="nav-btn" onclick="prevPage()">◀</button>
+        
+        <div class="auto-play-switch" onclick="toggleAutoPlay()">
+            <div class="switch-btn" id="auto-switch">
+                <div class="switch-circle"></div>
+            </div>
+            <span>自动连播</span>
+        </div>
+        
+        <button class="nav-btn" onclick="nextPage()">▶</button>
+    </div>
+
+    <script>
+        const data = [
+            { text: "人之初", pinyin: ["Rén", "zhī", "chū"] },
+            { text: "性本善", pinyin: ["Xìng", "běn", "shàn"] },
+            { text: "性相近", pinyin: ["Xìng", "xiāng", "jìn"] },
+            { text: "习相远", pinyin: ["Xí", "xiāng", "yuǎn"] },
+            { text: "苟不教", pinyin: ["Gǒu", "bù", "jiào"] },
+            { text: "性乃迁", pinyin: ["Xìng", "nǎi", "qiān"] },
+            { text: "教之道", pinyin: ["Jiào", "zhī", "dào"] },
+            { text: "贵以专", pinyin: ["Guì", "yǐ", "zhuān"] },
+            { text: "昔孟母", pinyin: ["Xī", "mèng", "mǔ"] },
+            { text: "择邻处", pinyin: ["Zé", "lín", "chǔ"] },
+            { text: "子不学", pinyin: ["Zǐ", "bù", "xué"] },
+            { text: "断机杼", pinyin: ["Duàn", "jī", "zhù"] },
+            { text: "窦燕山", pinyin: ["Dòu", "yān", "shān"] },
+            { text: "有义方", pinyin: ["Yǒu", "yì", "fāng"] },
+            { text: "教五子", pinyin: ["Jiào", "wǔ", "zǐ"] },
+            { text: "名俱扬", pinyin: ["Míng", "jù", "yáng"] },
+            { text: "养不教", pinyin: ["Yǎng", "bù", "jiào"] },
+            { text: "父之过", pinyin: ["Fù", "zhī", "guò"] },
+            { text: "教不严", pinyin: ["Jiào", "bù", "yán"] },
+            { text: "师之惰", pinyin: ["Shī", "zhī", "duò"] },
+            { text: "子不学", pinyin: ["Zǐ", "bù", "xué"] },
+            { text: "非所宜", pinyin: ["Fēi", "suǒ", "yí"] },
+            { text: "幼不学", pinyin: ["Yòu", "bù", "xué"] },
+            { text: "老何为", pinyin: ["Lǎo", "hé", "wéi"] }
+        ];
+
+        let currentIndex = 0;
+        const totalPages = Math.ceil(data.length / 2);
+        let isAutoPlay = false;
+        let autoPlayTimer = null;
+
+        const card = document.getElementById('page-card');
+
+        function renderPage(animateClass) {
+            if(animateClass) {
+                card.classList.add(animateClass);
+                setTimeout(() => card.classList.remove(animateClass), 500);
+            }
+
+            const idx = currentIndex * 2;
+            const item1 = data[idx];
+            const item2 = data[idx + 1];
+
+            document.getElementById('line1').innerHTML = generateHtml(item1);
+            document.getElementById('line2').innerHTML = item2 ? generateHtml(item2) : '';
+            document.getElementById('page-num').textContent = `${currentIndex + 1} / ${totalPages}`;
+        }
+
+        function generateHtml(item) {
+            let html = '<div class="pinyin-row">';
+            for(let i=0; i<item.text.length; i++) {
+                html += `
+                    <div class="char-group">
+                        <div class="pinyin">${item.pinyin[i]}</div>
+                        <div class="hanzi">${item.text[i]}</div>
+                    </div>
+                `;
+            }
+            html += '</div>';
+            return html;
+        }
+
+        function playCurrentAudio() {
+            if (!('speechSynthesis' in window)) {
+                alert("设备不支持语音朗读");
+                return;
+            }
+
+            window.speechSynthesis.cancel(); 
+
+            const idx = currentIndex * 2;
+            const text1 = data[idx].text;
+            const text2 = data[idx+1] ? data[idx+1].text : '';
+            
+            const utter = new SpeechSynthesisUtterance(`${text1}。${text2}`);
+            utter.lang = 'zh-CN';
+            utter.rate = 0.8; 
+            
+            showHint("🔊 正在朗读...");
+            
+            utter.onend = function() {
+                if(isAutoPlay) {
+                    setTimeout(nextPage, 2000); 
+                }
+            };
+
+            window.speechSynthesis.speak(utter);
+        }
+
+        function prevPage() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderPage('slide-in');
+                if(isAutoPlay) playCurrentAudio();
+            } else {
+                showHint("已经是第一页啦");
+            }
+        }
+
+        function nextPage() {
+            if (currentIndex < totalPages - 1) {
+                currentIndex++;
+                renderPage('slide-in');
+                if(isAutoPlay) playCurrentAudio();
+            } else {
+                showHint("读完啦，真棒！");
+                isAutoPlay = false; 
+                updateSwitchUI();
+            }
+        }
+
+        function toggleAutoPlay() {
+            isAutoPlay = !isAutoPlay;
+            updateSwitchUI();
+            if(isAutoPlay) {
+                showHint("开启自动连播");
+                playCurrentAudio();
+            } else {
+                showHint("已暂停");
+                window.speechSynthesis.cancel();
+            }
+        }
+
+        function updateSwitchUI() {
+            const btn = document.getElementById('auto-switch');
+            if(isAutoPlay) btn.classList.add('active');
+            else btn.classList.remove('active');
+        }
+
+        function showHint(msg) {
+            const box = document.getElementById('hint-box');
+            box.textContent = msg;
+            box.classList.add('show');
+            setTimeout(() => box.classList.remove('show'), 1500);
+        }
+
+        renderPage();
+
+    </script>
+</body>
+</html>
