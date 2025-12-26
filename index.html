@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>宝宝巴士 - 快乐七仔</title>
+    <style>
+        :root {
+            --bg-overlay: rgba(255, 255, 255, 0.6);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            /* 背景图：继续沿用那张森林背景，保持风格统一 */
+            background-image: url('images/szzmcbg.jpg'); 
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-size: cover;
+            font-family: "Comic Sans MS", "YouYuan", "幼圆", sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            user-select: none;
+        }
+
+        /* 遮罩 */
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-overlay); pointer-events: none; z-index: -1;
+        }
+
+        /* 头部区域 */
+        header {
+            text-align: center;
+            padding: 40px 20px 20px;
+            animation: floatHeader 3s ease-in-out infinite alternate;
+        }
+
+        /* 七仔头像 */
+        .avatar-box {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 15px;
+            border-radius: 50%;
+            border: 6px solid #fff;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            overflow: hidden;
+            background: #fff;
+        }
+
+        .avatar-box img {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: #FF5722;
+            text-shadow: 3px 3px 0 #fff, 0 5px 10px rgba(0,0,0,0.1);
+            letter-spacing: 2px;
+        }
+
+        p.subtitle {
+            margin: 10px 0 0;
+            font-size: 1.2rem;
+            color: #5D4037;
+            background: rgba(255,255,255,0.8);
+            padding: 5px 20px;
+            border-radius: 20px;
+            display: inline-block;
+            font-weight: bold;
+        }
+
+        @keyframes floatHeader {
+            from { transform: translateY(0); }
+            to { transform: translateY(-10px); }
+        }
+
+        /* 导航网格区域 */
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 手机端默认两列 */
+            gap: 20px;
+            padding: 20px;
+            width: 90%;
+            max-width: 800px;
+            margin-bottom: 50px;
+        }
+
+        /* 入口卡片样式 */
+        .nav-card {
+            background: #fff;
+            border-radius: 25px;
+            text-decoration: none; /* 去掉链接下划线 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 10px;
+            position: relative;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            border: 5px solid #fff;
+            overflow: hidden;
+        }
+
+        /* 点击/悬停效果 */
+        .nav-card:hover {
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 20px 30px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+        .nav-card:active {
+            transform: scale(0.95);
+        }
+
+        /* 卡片图标 */
+        .nav-icon {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        .nav-card:hover .nav-icon {
+            transform: scale(1.2) rotate(10deg);
+        }
+
+        /* 卡片标题 */
+        .nav-title {
+            font-size: 1.3rem;
+            font-weight: 900;
+            color: #fff; /* 文字颜色反白，因为背景是彩色的 */
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        /* --- 多彩配色方案 --- */
+        /* 1. 数字捉迷藏 - 活力橙 */
+        .card-game { background: linear-gradient(135deg, #FFAB91 0%, #FF7043 100%); }
+        
+        /* 2. 谁的杯子 - 清新蓝 */
+        .card-cup { background: linear-gradient(135deg, #81D4FA 0%, #29B6F6 100%); }
+        
+        /* 3. 早饭怎么吃 - 暖阳黄 */
+        .card-bf { background: linear-gradient(135deg, #FFF59D 0%, #FDD835 100%); }
+        .card-bf .nav-title { color: #5D4037; text-shadow: none; } /* 黄色背景字要深色才看得清 */
+
+        /* 4. 午饭吃什么 - 饭菜红 */
+        .card-lunch { background: linear-gradient(135deg, #EF9A9A 0%, #EF5350 100%); }
+
+        /* 5. 水果吃什么 - 甜美粉 */
+        .card-fruit { background: linear-gradient(135deg, #F48FB1 0%, #EC407A 100%); }
+
+        /* 6. 我的ABC - 聪明绿 */
+        .card-abc { background: linear-gradient(135deg, #A5D6A7 0%, #66BB6A 100%); }
+
+
+        /* 底部版权 */
+        footer {
+            margin-top: auto;
+            padding: 20px;
+            color: #8D6E63;
+            font-size: 0.9rem;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* 电脑端适配：变成3列 */
+        @media (min-width: 768px) {
+            .nav-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 30px;
+            }
+            .nav-card { height: 200px; }
+            h1 { font-size: 3.5rem; }
+            .avatar-box { width: 150px; height: 150px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="overlay"></div>
+
+    <header>
+        <div class="avatar-box">
+            <img src="images/qizaitx.jpg" alt="七仔" onerror="this.src='https://placehold.co/200?text=🐼';">
+        </div>
+        <h1>宝宝巴士 快乐七仔</h1>
+        <p class="subtitle">爸爸给七仔做的游戏乐园 ❤️</p>
+    </header>
+
+    <div class="nav-grid">
+        
+        <a href="pages/game.html" class="nav-card card-game" onclick="vibrate()">
+            <div class="nav-icon">🔍</div>
+            <div class="nav-title">数字捉迷藏</div>
+        </a>
+
+        <a href="pages/cups.html" class="nav-card card-cup" onclick="vibrate()">
+            <div class="nav-icon">🥛</div>
+            <div class="nav-title">谁的杯子？</div>
+        </a>
+
+        <a href="pages/breakfast.html" class="nav-card card-bf" onclick="vibrate()">
+            <div class="nav-icon">🍳</div>
+            <div class="nav-title">早饭怎么吃</div>
+        </a>
+
+        <a href="pages/lunch.html" class="nav-card card-lunch" onclick="vibrate()">
+            <div class="nav-icon">🍱</div>
+            <div class="nav-title">午饭吃什么</div>
+        </a>
+
+        <a href="pages/fruit.html" class="nav-card card-fruit" onclick="vibrate()">
+            <div class="nav-icon">🍓</div>
+            <div class="nav-title">水果吃什么</div>
+        </a>
+
+        <a href="pages/abc.html" class="nav-card card-abc" onclick="vibrate()">
+            <div class="nav-icon">🦁</div>
+            <div class="nav-title">我的ABC</div>
+        </a>
+
+    </div>
+
+    <footer>
+        Made with ❤️ by Daddy & AI
+    </footer>
+
+    <script>
+        function vibrate() {
+            if (navigator.vibrate) navigator.vibrate(20);
+        }
+    </script>
+
+</body>
+</html>
