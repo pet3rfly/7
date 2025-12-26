@@ -9,246 +9,164 @@
             --bg-color: #F7E8D6; /* 宣纸色 */
             --primary-color: #C0392B; /* 中国红 */
             --text-color: #2C3E50; /* 墨色 */
-            --accent-color: #D35400; /* 琉璃黄/深橙 */
+            --accent-color: #D35400; /* 琉璃黄 */
         }
 
         body {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             background-color: var(--bg-color);
             background-image: radial-gradient(#D7CCC8 1px, transparent 1px);
             background-size: 20px 20px;
             font-family: "KaiTi", "STKaiti", "楷体", serif;
             height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            user-select: none;
+            display: flex; flex-direction: column;
+            overflow: hidden; user-select: none;
         }
 
-        /* --- 顶部装饰条 (优化版) --- */
+        /* 顶部装饰条 */
         .header-deco {
-            height: 90px; /* 高度增加，更大气 */
+            height: 80px;
             background-color: var(--primary-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #FFD700; /* 金色文字 */
-            font-size: 2.2rem; /* 字号加大 */
-            font-weight: bold;
+            display: flex; align-items: center; justify-content: center;
+            color: #FFD700; font-size: 2rem; font-weight: bold;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            position: relative;
-            z-index: 10;
+            position: relative; z-index: 10;
             text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
-            padding-top: 5px; /* 微调文字位置 */
         }
-        
-        /* 优化的云纹装饰 */
         .header-deco::after {
-            content: '';
-            position: absolute;
-            bottom: -15px; /* 让波浪垂下来更多一点 */
-            left: 0;
-            width: 100%;
-            height: 30px; /* 波浪高度增加 */
-            /* 使用径向渐变模拟波浪边缘 */
-            background: radial-gradient(circle, var(--primary-color) 15px, transparent 16px);
-            background-size: 40px 50px; /* 波浪更宽大圆润 */
-            background-position: center bottom;
+            content: ''; position: absolute; bottom: -12px; left: 0;
+            width: 100%; height: 24px;
+            background: radial-gradient(circle, var(--primary-color) 12px, transparent 13px);
+            background-size: 30px 40px; background-position: center bottom;
         }
 
         .home-btn {
-            position: absolute;
-            top: 50%;
-            right: 20px;
-            transform: translateY(-50%);
-            background: rgba(255,255,255,0.2);
-            color: #fff;
-            text-decoration: none;
-            font-size: 0.9rem;
-            padding: 6px 15px;
-            border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.4);
+            position: absolute; top: 50%; right: 30px; transform: translateY(-50%);
+            background: rgba(255,255,255,0.2); color: #fff;
+            text-decoration: none; font-size: 1rem; padding: 8px 18px;
+            border-radius: 20px; border: 1px solid rgba(255,255,255,0.4);
             font-family: sans-serif;
-            font-weight: normal;
-            text-shadow: none;
         }
 
+        /* --- 书本容器 --- */
         #book-container {
             flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            perspective: 1000px;
-            padding: 20px;
+            display: flex; align-items: center; justify-content: center;
+            perspective: 1000px; padding: 20px;
             position: relative;
         }
 
+        /* 书页卡片 (基础样式 - 手机优先) */
         #page-card {
             width: 85vw;
-            max-width: 400px;
+            max-width: 400px; /* 手机上限 */
             aspect-ratio: 3/4;
             background: #fff;
             border: 8px solid var(--primary-color);
             border-radius: 15px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.2), inset 0 0 60px rgba(192, 57, 43, 0.05);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            position: relative;
-            outline: 2px solid var(--primary-color);
-            outline-offset: -12px;
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            padding: 20px; position: relative;
+            outline: 2px solid var(--primary-color); outline-offset: -12px;
+            transition: transform 0.4s, opacity 0.3s;
             cursor: pointer;
         }
 
         #page-card:active { transform: scale(0.98); }
 
         .slide-in { animation: slideIn 0.5s ease forwards; }
+        @keyframes slideIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        @keyframes slideIn {
-            from { transform: scale(0.8); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-
+        /* 内容文字 (基础样式) */
         .pinyin-row { display: flex; gap: 15px; margin-bottom: 5px; }
-        
         .char-group { display: flex; flex-direction: column; align-items: center; }
-
-        .pinyin {
-            font-family: Arial, sans-serif;
-            font-size: 1.2rem;
-            color: #7F8C8D;
-            margin-bottom: -5px;
+        .pinyin { font-family: Arial, sans-serif; font-size: 1.2rem; color: #7F8C8D; margin-bottom: -5px; }
+        .hanzi { 
+            font-size: 4rem; font-weight: bold; color: var(--text-color);
+            line-height: 1.2; text-shadow: 2px 2px 0 rgba(0,0,0,0.1); 
         }
 
-        .hanzi {
-            font-size: 4rem;
-            font-weight: bold;
-            color: var(--text-color);
-            line-height: 1.2;
-            text-shadow: 2px 2px 0 rgba(0,0,0,0.1);
-        }
-
-        .divider {
-            width: 60%;
-            height: 2px;
-            background: var(--accent-color);
-            margin: 20px 0;
-            opacity: 0.5;
-        }
+        .divider { width: 60%; height: 2px; background: var(--accent-color); margin: 20px 0; opacity: 0.5; }
 
         .icon-area {
-            margin-top: 15px;
-            font-size: 1.5rem;
-            color: var(--accent-color);
-            opacity: 0.8;
+            margin-top: 15px; font-size: 1.5rem; color: var(--accent-color); opacity: 0.8;
             animation: floatIcon 3s ease-in-out infinite;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-family: sans-serif;
-            font-weight: bold;
+            display: flex; align-items: center; gap: 5px; font-family: sans-serif; font-weight: bold;
         }
-        
-        @keyframes floatIcon {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-        }
+        @keyframes floatIcon { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 
-        .page-number {
-            position: absolute;
-            bottom: 15px;
-            font-size: 1rem;
-            color: #999;
-            font-family: Arial, sans-serif;
-        }
+        .page-number { position: absolute; bottom: 15px; font-size: 1rem; color: #999; font-family: Arial, sans-serif; }
 
         /* 底部控制栏 */
         .controls {
-            height: 120px; /* 底部空间稍微留大一点 */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 40px;
-            padding-bottom: 20px;
+            height: 120px; display: flex; align-items: center; justify-content: center;
+            gap: 40px; padding-bottom: 20px;
         }
 
         .nav-btn {
-            width: 65px;
-            height: 65px;
-            border-radius: 50%;
-            border: none;
-            background-color: var(--primary-color);
-            color: #fff;
-            font-size: 1.8rem;
-            box-shadow: 0 5px 15px rgba(192, 57, 43, 0.4);
-            cursor: pointer;
+            width: 65px; height: 65px; border-radius: 50%;
+            border: none; background-color: var(--primary-color); color: #fff;
+            font-size: 1.8rem; box-shadow: 0 5px 15px rgba(192, 57, 43, 0.4);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
             transition: transform 0.1s;
-            display: flex; align-items: center; justify-content: center;
         }
-
-        .nav-btn:active { transform: scale(0.9); background-color: #A93226; }
+        .nav-btn:active { transform: scale(0.9); }
         
         .auto-play-switch {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-size: 0.9rem;
-            color: var(--text-color);
-            gap: 8px;
-            font-weight: bold;
+            display: flex; flex-direction: column; align-items: center;
+            font-size: 0.9rem; color: var(--text-color); gap: 8px; font-weight: bold;
         }
-        
         .switch-btn {
-            width: 54px;
-            height: 30px;
-            background: #BDC3C7;
-            border-radius: 15px;
-            position: relative;
-            cursor: pointer;
-            transition: background 0.3s;
+            width: 54px; height: 30px; background: #BDC3C7;
+            border-radius: 15px; position: relative; cursor: pointer; transition: background 0.3s;
         }
-        
         .switch-btn.active { background: var(--accent-color); }
-        
         .switch-circle {
-            width: 26px;
-            height: 26px;
-            background: #fff;
-            border-radius: 50%;
-            position: absolute;
-            top: 2px; left: 2px;
-            transition: left 0.3s;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            width: 26px; height: 26px; background: #fff;
+            border-radius: 50%; position: absolute; top: 2px; left: 2px;
+            transition: left 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
-        
         .switch-btn.active .switch-circle { left: 26px; }
 
         .hint {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.8);
-            color: #fff;
-            padding: 12px 25px;
-            border-radius: 25px;
-            font-size: 1.1rem;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s;
-            z-index: 20;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8); color: #fff; padding: 12px 25px;
+            border-radius: 25px; font-size: 1.1rem; opacity: 0; pointer-events: none;
+            transition: opacity 0.3s; z-index: 20;
         }
-        
         .hint.show { opacity: 1; }
 
-        /* 手机适配微调 */
-        @media (max-width: 400px) {
-            .hanzi { font-size: 3.5rem; }
-            .pinyin { font-size: 1rem; }
-            #page-card { width: 90vw; padding: 10px; }
+        /* =========================================
+           【重点优化】电脑端/平板端 适配 (Media Queries)
+           当屏幕宽度大于 768px 时，应用以下样式
+           ========================================= */
+        @media (min-width: 768px) {
+            /* 1. 书本容器变大 */
+            #page-card {
+                max-width: 600px; /* 宽度从400涨到800 */
+                border-width: 12px;
+                border-radius: 25px;
+                outline-width: 3px;
+                outline-offset: -18px;
+            }
+
+            /* 2. 字号变得巨大 */
+            .hanzi { font-size: 8rem; } /* 汉字从4rem涨到8rem */
+            .pinyin { font-size: 2.2rem; margin-bottom: -10px; }
+            .pinyin-row { gap: 30px; margin-bottom: 10px; }
+
+            /* 3. 其他元素按比例放大 */
+            .icon-area { font-size: 2rem; margin-top: 30px; }
+            .page-number { font-size: 1.2rem; bottom: 25px; }
+            .header-deco { height: 110px; font-size: 3rem; }
+            .header-deco::after { height: 35px; background-size: 50px 60px; }
+            
+            /* 4. 按钮变大方便鼠标点击 */
+            .nav-btn { width: 80px; height: 80px; font-size: 2.5rem; }
+            .nav-btn:hover { background-color: #D32F2F; transform: scale(1.05); } /* 鼠标悬停效果 */
+            
+            .home-btn { font-size: 1.2rem; padding: 10px 25px; right: 40px; }
         }
 
     </style>
@@ -319,7 +237,6 @@
         let currentIndex = 0;
         const totalPages = Math.ceil(data.length / 2);
         let isAutoPlay = false;
-        let autoPlayTimer = null;
 
         const card = document.getElementById('page-card');
 
@@ -357,9 +274,7 @@
                 alert("设备不支持语音朗读");
                 return;
             }
-
             window.speechSynthesis.cancel(); 
-
             const idx = currentIndex * 2;
             const text1 = data[idx].text;
             const text2 = data[idx+1] ? data[idx+1].text : '';
@@ -371,11 +286,8 @@
             showHint("🔊 正在朗读...");
             
             utter.onend = function() {
-                if(isAutoPlay) {
-                    setTimeout(nextPage, 2000); 
-                }
+                if(isAutoPlay) setTimeout(nextPage, 2000); 
             };
-
             window.speechSynthesis.speak(utter);
         }
 
@@ -427,7 +339,6 @@
         }
 
         renderPage();
-
     </script>
 </body>
 </html>
