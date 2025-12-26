@@ -6,10 +6,10 @@
     <title>七仔的三字经</title>
     <style>
         :root {
-            --bg-color: #F7E8D6; /* 宣纸色 */
-            --primary-color: #C0392B; /* 中国红 */
-            --text-color: #2C3E50; /* 墨色 */
-            --accent-color: #D35400; /* 琉璃黄 */
+            --bg-color: #F7E8D6;
+            --primary-color: #C0392B;
+            --text-color: #2C3E50;
+            --accent-color: #D35400;
         }
 
         body {
@@ -32,6 +32,7 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             position: relative; z-index: 10;
             text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+            flex-shrink: 0; /* 防止被压缩 */
         }
         .header-deco::after {
             content: ''; position: absolute; bottom: -12px; left: 0;
@@ -41,25 +42,25 @@
         }
 
         .home-btn {
-            position: absolute; top: 50%; right: 30px; transform: translateY(-50%);
+            position: absolute; top: 50%; right: 20px; transform: translateY(-50%);
             background: rgba(255,255,255,0.2); color: #fff;
-            text-decoration: none; font-size: 1rem; padding: 8px 18px;
+            text-decoration: none; font-size: 0.9rem; padding: 6px 15px;
             border-radius: 20px; border: 1px solid rgba(255,255,255,0.4);
             font-family: sans-serif;
         }
 
-        /* --- 书本容器 --- */
+        /* 书本容器 */
         #book-container {
             flex: 1;
             display: flex; align-items: center; justify-content: center;
             perspective: 1000px; padding: 20px;
             position: relative;
+            touch-action: pan-y; /* 允许垂直滚动，禁止水平滚动冲突 */
         }
 
-        /* 书页卡片 (基础样式 - 手机优先) */
+        /* 书页卡片 */
         #page-card {
-            width: 85vw;
-            max-width: 400px; /* 手机上限 */
+            width: 85vw; max-width: 400px;
             aspect-ratio: 3/4;
             background: #fff;
             border: 8px solid var(--primary-color);
@@ -72,13 +73,12 @@
             transition: transform 0.4s, opacity 0.3s;
             cursor: pointer;
         }
-
         #page-card:active { transform: scale(0.98); }
 
         .slide-in { animation: slideIn 0.5s ease forwards; }
         @keyframes slideIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        /* 内容文字 (基础样式) */
+        /* 内容 */
         .pinyin-row { display: flex; gap: 15px; margin-bottom: 5px; }
         .char-group { display: flex; flex-direction: column; align-items: center; }
         .pinyin { font-family: Arial, sans-serif; font-size: 1.2rem; color: #7F8C8D; margin-bottom: -5px; }
@@ -98,24 +98,35 @@
 
         .page-number { position: absolute; bottom: 15px; font-size: 1rem; color: #999; font-family: Arial, sans-serif; }
 
-        /* 底部控制栏 */
+        /* 底部控制栏 - 修复版 */
         .controls {
-            height: 120px; display: flex; align-items: center; justify-content: center;
-            gap: 40px; padding-bottom: 20px;
+            height: 120px; 
+            width: 100%;
+            display: flex; 
+            align-items: center; 
+            /* 关键修改：使用 space-evenly 自动分配空间，防止挤出屏幕 */
+            justify-content: space-evenly; 
+            padding-bottom: 20px;
+            flex-shrink: 0;
+            background: linear-gradient(to top, var(--bg-color), transparent);
         }
 
         .nav-btn {
-            width: 65px; height: 65px; border-radius: 50%;
+            width: 60px; height: 60px; border-radius: 50%;
             border: none; background-color: var(--primary-color); color: #fff;
-            font-size: 1.8rem; box-shadow: 0 5px 15px rgba(192, 57, 43, 0.4);
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            transition: transform 0.1s;
+            /* 使用 flex 保证箭头居中 */
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; box-shadow: 0 5px 15px rgba(192, 57, 43, 0.4);
+            cursor: pointer; z-index: 20;
+            /* 防止按钮被挤压 */
+            flex-shrink: 0; 
         }
         .nav-btn:active { transform: scale(0.9); }
         
         .auto-play-switch {
             display: flex; flex-direction: column; align-items: center;
             font-size: 0.9rem; color: var(--text-color); gap: 8px; font-weight: bold;
+            z-index: 20;
         }
         .switch-btn {
             width: 54px; height: 30px; background: #BDC3C7;
@@ -133,42 +144,20 @@
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: rgba(0,0,0,0.8); color: #fff; padding: 12px 25px;
             border-radius: 25px; font-size: 1.1rem; opacity: 0; pointer-events: none;
-            transition: opacity 0.3s; z-index: 20;
+            transition: opacity 0.3s; z-index: 50; white-space: nowrap;
         }
         .hint.show { opacity: 1; }
 
-        /* =========================================
-           【重点优化】电脑端/平板端 适配 (Media Queries)
-           当屏幕宽度大于 768px 时，应用以下样式
-           ========================================= */
+        /* PC适配 */
         @media (min-width: 768px) {
-            /* 1. 书本容器变大 */
-            #page-card {
-                max-width: 600px; /* 宽度从400涨到800 */
-                border-width: 12px;
-                border-radius: 25px;
-                outline-width: 3px;
-                outline-offset: -18px;
-            }
-
-            /* 2. 字号变得巨大 */
-            .hanzi { font-size: 8rem; } /* 汉字从4rem涨到8rem */
+            #page-card { max-width: 600px; border-width: 12px; outline-offset: -18px; }
+            .hanzi { font-size: 8rem; }
             .pinyin { font-size: 2.2rem; margin-bottom: -10px; }
-            .pinyin-row { gap: 30px; margin-bottom: 10px; }
-
-            /* 3. 其他元素按比例放大 */
-            .icon-area { font-size: 2rem; margin-top: 30px; }
-            .page-number { font-size: 1.2rem; bottom: 25px; }
-            .header-deco { height: 110px; font-size: 3rem; }
-            .header-deco::after { height: 35px; background-size: 50px 60px; }
-            
-            /* 4. 按钮变大方便鼠标点击 */
+            .pinyin-row { gap: 30px; }
+            .icon-area { margin-top: 30px; }
             .nav-btn { width: 80px; height: 80px; font-size: 2.5rem; }
-            .nav-btn:hover { background-color: #D32F2F; transform: scale(1.05); } /* 鼠标悬停效果 */
-            
-            .home-btn { font-size: 1.2rem; padding: 10px 25px; right: 40px; }
+            .controls { gap: 50px; justify-content: center; } /* PC端可以保持较大间距 */
         }
-
     </style>
 </head>
 <body>
@@ -181,20 +170,16 @@
     <div id="book-container">
         <div id="page-card" onclick="playCurrentAudio()">
             <div class="sentence-group" id="line1"></div>
-            
             <div class="divider"></div>
-
             <div class="sentence-group" id="line2"></div>
-            
             <div class="icon-area">🔊 点我读</div>
             <div class="page-number" id="page-num">1 / 12</div>
         </div>
-        
         <div class="hint" id="hint-box">已为您朗读</div>
     </div>
 
     <div class="controls">
-        <button class="nav-btn" onclick="prevPage()">◀</button>
+        <button class="nav-btn" onclick="prevPage()">&#9664;</button>
         
         <div class="auto-play-switch" onclick="toggleAutoPlay()">
             <div class="switch-btn" id="auto-switch">
@@ -203,7 +188,7 @@
             <span>自动连播</span>
         </div>
         
-        <button class="nav-btn" onclick="nextPage()">▶</button>
+        <button class="nav-btn" onclick="nextPage()">&#9654;</button>
     </div>
 
     <script>
@@ -238,12 +223,39 @@
         const totalPages = Math.ceil(data.length / 2);
         let isAutoPlay = false;
 
-        const card = document.getElementById('page-card');
+        // --- 手势滑动逻辑 ---
+        let touchStartX = 0;
+        let touchEndX = 0;
+        const bookContainer = document.getElementById('book-container');
+
+        bookContainer.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        bookContainer.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const threshold = 50; // 滑动超过50px才触发
+            if (touchStartX - touchEndX > threshold) {
+                // 左滑 -> 下一页
+                nextPage();
+            }
+            if (touchEndX - touchStartX > threshold) {
+                // 右滑 -> 上一页
+                prevPage();
+            }
+        }
+        // ------------------
 
         function renderPage(animateClass) {
+            const card = document.getElementById('page-card');
             if(animateClass) {
+                card.classList.remove('slide-in'); // 重置动画
+                void card.offsetWidth; // 触发重绘
                 card.classList.add(animateClass);
-                setTimeout(() => card.classList.remove(animateClass), 500);
             }
 
             const idx = currentIndex * 2;
@@ -270,23 +282,16 @@
         }
 
         function playCurrentAudio() {
-            if (!('speechSynthesis' in window)) {
-                alert("设备不支持语音朗读");
-                return;
-            }
-            window.speechSynthesis.cancel(); 
+            if (!('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
             const idx = currentIndex * 2;
             const text1 = data[idx].text;
             const text2 = data[idx+1] ? data[idx+1].text : '';
-            
             const utter = new SpeechSynthesisUtterance(`${text1}。${text2}`);
-            utter.lang = 'zh-CN';
-            utter.rate = 0.8; 
-            
+            utter.lang = 'zh-CN'; utter.rate = 0.8;
             showHint("🔊 正在朗读...");
-            
             utter.onend = function() {
-                if(isAutoPlay) setTimeout(nextPage, 2000); 
+                if(isAutoPlay) setTimeout(nextPage, 2000);
             };
             window.speechSynthesis.speak(utter);
         }
@@ -308,21 +313,15 @@
                 if(isAutoPlay) playCurrentAudio();
             } else {
                 showHint("读完啦，真棒！");
-                isAutoPlay = false; 
-                updateSwitchUI();
+                isAutoPlay = false; updateSwitchUI();
             }
         }
 
         function toggleAutoPlay() {
             isAutoPlay = !isAutoPlay;
             updateSwitchUI();
-            if(isAutoPlay) {
-                showHint("开启自动连播");
-                playCurrentAudio();
-            } else {
-                showHint("已暂停");
-                window.speechSynthesis.cancel();
-            }
+            if(isAutoPlay) { showHint("开启自动连播"); playCurrentAudio(); }
+            else { showHint("已暂停"); window.speechSynthesis.cancel(); }
         }
 
         function updateSwitchUI() {
