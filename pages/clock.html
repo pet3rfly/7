@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>现在做什么？ - 时间管理</title>
+    <style>
+        :root {
+            /* 默认变量 */
+            --bg-color: #87CEEB; /* 白天蓝 */
+            --clock-face: #f9f9f9;
+            --clock-shadow: 0 20px 50px rgba(0,0,0,0.25), inset 0 0 20px rgba(0,0,0,0.05);
+            --text-color: #333;
+            --btn-color: #4CAF50;
+        }
+
+        body {
+            margin: 0; padding: 0;
+            height: 100vh;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: space-between;
+            background-color: var(--bg-color);
+            transition: background-color 1s ease; /* 昼夜切换时的渐变动画 */
+            font-family: "Comic Sans MS", "YouYuan", "幼圆", sans-serif;
+            overflow: hidden; user-select: none;
+            padding-bottom: 40px; box-sizing: border-box;
+        }
+
+        /* 夜间模式样式 */
+        body.night-mode {
+            --bg-color: #1a237e; /* 深夜蓝 */
+            --text-color: #fff;
+            --btn-color: #FF9800;
+        }
+
+        /* 顶部标题栏 */
+        header {
+            width: 100%; text-align: center; padding-top: 20px;
+            position: relative; z-index: 10;
+        }
+
+        h1 {
+            margin: 0; font-size: 2rem; color: var(--text-color);
+            text-shadow: 2px 2px 0 rgba(255,255,255,0.2);
+            transition: color 1s;
+        }
+        
+        body.night-mode h1 { text-shadow: 2px 2px 0 rgba(0,0,0,0.5); }
+
+        .home-btn {
+            position: absolute; top: 20px; right: 20px;
+            background: rgba(255,255,255,0.3); padding: 8px 15px; border-radius: 20px;
+            text-decoration: none; color: var(--text-color); font-weight: bold;
+            border: 2px solid rgba(255,255,255,0.5); font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        /* --- 时钟主体 --- */
+        .clock-container {
+            position: relative;
+            width: 300px; height: 300px;
+            background: var(--clock-face);
+            border-radius: 50%;
+            border: 10px solid #fff;
+            box-shadow: var(--clock-shadow);
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        /* 刻度线 (由JS生成) */
+        .tick {
+            position: absolute; width: 4px; height: 10px;
+            background: #555; left: 50%; top: 6px;
+            transform-origin: center 134px; /* 300/2 - 10 - 6 */
+            transform: translateX(-50%);
+        }
+        .tick.large { height: 18px; width: 6px; background: #333; }
+
+        /* 中心点 */
+        .center-dot {
+            width: 16px; height: 16px; background: #333;
+            border-radius: 50%; position: absolute; z-index: 10;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        /* 指针通用 */
+        .hand {
+            position: absolute; bottom: 50%; left: 50%;
+            transform-origin: bottom center;
+            border-radius: 10px 10px 0 0;
+            transform: translateX(-50%) rotate(0deg);
+            transition: transform 0.5s cubic-bezier(0.4, 2.08, 0.55, 0.44); /* 弹性动画 */
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        /* 时针 (红色) */
+        .hour-hand {
+            width: 10px; height: 75px; /* 短 */
+            background: #E53935; z-index: 5;
+        }
+
+        /* 分针 (蓝色) */
+        .min-hand {
+            width: 6px; height: 110px; /* 长 */
+            background: #2196F3; z-index: 6;
+        }
+
+        /* 昼夜图标 */
+        .day-night-icon {
+            position: absolute; top: 70px;
+            font-size: 2.5rem; opacity: 0.8;
+            animation: pulse 3s infinite;
+        }
+        @keyframes pulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.1);} }
+
+        /* --- 事件展示区 --- */
+        .event-box {
+            text-align: center;
+            min-height: 160px;
+            display: flex; flex-direction: column; justify-content: center;
+        }
+
+        .event-emoji {
+            font-size: 6rem;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2));
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .time-text {
+            font-size: 1.5rem; color: var(--text-color);
+            font-weight: bold; margin-top: 10px;
+            opacity: 0.6; /* 稍微淡一点，让孩子专注看时钟 */
+        }
+
+        @keyframes popIn { from{transform:scale(0);} to{transform:scale(1);} }
+
+        /* --- 刷新按钮 --- */
+        .refresh-btn {
+            background-color: var(--btn-color); color: white;
+            border: none; border-radius: 50px; padding: 15px 60px;
+            font-size: 1.5rem; font-weight: 900; cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: all 0.2s;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .refresh-btn:active { transform: scale(0.95); }
+
+        /* 移动端适配 */
+        @media (max-width: 400px) {
+            .clock-container { width: 260px; height: 260px; }
+            .tick { transform-origin: center 114px; }
+            .hour-hand { height: 60px; }
+            .min-hand { height: 95px; }
+            .day-night-icon { top: 60px; font-size: 2rem; }
+            .event-emoji { font-size: 5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>现在做什么？</h1>
+        <a href="../index.html" class="home-btn">🏠 主页</a>
+    </header>
+
+    <div class="clock-container" id="clock">
+        <div class="day-night-icon" id="dn-icon">☀️</div>
+        <div class="hour-hand hand" id="h-hand"></div>
+        <div class="min-hand hand" id="m-hand"></div>
+        <div class="center-dot"></div>
+    </div>
+
+    <div class="event-box">
+        <div class="event-emoji" id="event-emoji">😴</div>
+        <div class="time-text" id="time-display">-- : --</div>
+    </div>
+
+    <button class="refresh-btn" onclick="refreshTime()">
+        🔄 换个时间
+    </button>
+
+    <script>
+        // --- 1. 生成表盘刻度 ---
+        const clock = document.getElementById('clock');
+        for (let i = 0; i < 60; i++) {
+            const tick = document.createElement('div');
+            tick.className = i % 5 === 0 ? 'tick large' : 'tick';
+            tick.style.transform = `translateX(-50%) rotate(${i * 6}deg)`;
+            clock.appendChild(tick);
+        }
+
+        // --- 2. 定义作息时间表 ---
+        // 为了方便计算，我们将时间转换为 "分钟数" (例如 7:30 = 7*60+30 = 450)
+        function getMinutes(h, m) { return h * 60 + m; }
+
+        const schedule = [
+            { start: getMinutes(7, 0),  end: getMinutes(7, 30),  emoji: "🌅", name: "起床" },
+            { start: getMinutes(7, 30), end: getMinutes(7, 59),  emoji: "🥣", name: "早饭" },
+            { start: getMinutes(8, 0),  end: getMinutes(8, 30),  emoji: "🎒", name: "上学" },
+            { start: getMinutes(9, 0),  end: getMinutes(9, 30),  emoji: "📖", name: "读书" },
+            { start: getMinutes(10, 0), end: getMinutes(10, 30), emoji: "⚽", name: "运动" },
+            { start: getMinutes(11, 30),end: getMinutes(12, 30), emoji: "🍱", name: "午饭" },
+            { start: getMinutes(12, 30),end: getMinutes(14, 0),  emoji: "💤", name: "午睡" },
+            { start: getMinutes(14, 30),end: getMinutes(15, 0),  emoji: "🏃", name: "运动" },
+            { start: getMinutes(17, 50),end: getMinutes(18, 30), emoji: "🍲", name: "晚饭" },
+            { start: getMinutes(20, 0), end: getMinutes(20, 15), emoji: "🪥", name: "刷牙" },
+            { start: getMinutes(20, 20),end: getMinutes(21, 0),  emoji: "📚", name: "讲故事" },
+            // 跨天的时间段需要特殊处理，或者拆分
+            { start: getMinutes(21, 1), end: getMinutes(23, 59), emoji: "🛌", name: "睡觉" },
+            { start: getMinutes(0, 0),  end: getMinutes(6, 59),  emoji: "🛌", name: "睡觉" }
+        ];
+
+        // --- 3. 核心逻辑 ---
+        
+        function getRandomTime() {
+            let h, m;
+            
+            // 80% 概率生成整点
+            if (Math.random() < 0.8) {
+                h = Math.floor(Math.random() * 24);
+                m = 0;
+            } else {
+                // 20% 概率生成随机时间
+                h = Math.floor(Math.random() * 24);
+                m = Math.floor(Math.random() * 60);
+            }
+            return { h, m };
+        }
+
+        function updateClockUI(h, m) {
+            // 1. 设置指针旋转
+            // 分针：每分钟走6度
+            const mDeg = m * 6;
+            // 时针：每小时走30度，每分钟多走0.5度
+            const hDeg = h * 30 + m * 0.5;
+
+            document.getElementById('m-hand').style.transform = `translateX(-50%) rotate(${mDeg}deg)`;
+            document.getElementById('h-hand').style.transform = `translateX(-50%) rotate(${hDeg}deg)`;
+
+            // 2. 显示数字时间 (作为辅助验证)
+            const hStr = h.toString().padStart(2, '0');
+            const mStr = m.toString().padStart(2, '0');
+            document.getElementById('time-display').innerText = `${hStr}:${mStr}`;
+
+            // 3. 昼夜模式切换
+            const isDay = h >= 7 && h < 18;
+            const body = document.body;
+            const icon = document.getElementById('dn-icon');
+
+            if (isDay) {
+                body.classList.remove('night-mode');
+                icon.innerText = "☀️";
+            } else {
+                body.classList.add('night-mode');
+                icon.innerText = "🌙";
+            }
+
+            // 4. 匹配作息 Emoji
+            const currentMins = getMinutes(h, m);
+            let foundEvent = false;
+            let targetEmoji = "🧸"; // 默认：自由活动/休息
+
+            for (let event of schedule) {
+                if (currentMins >= event.start && currentMins <= event.end) {
+                    targetEmoji = event.emoji;
+                    foundEvent = true;
+                    break;
+                }
+            }
+            
+            // 更新 Emoji 并重置动画
+            const emojiEl = document.getElementById('event-emoji');
+            emojiEl.innerText = targetEmoji;
+            emojiEl.style.animation = 'none';
+            emojiEl.offsetHeight; /* 触发重绘 */
+            emojiEl.style.animation = 'popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        }
+
+        function refreshTime() {
+            const { h, m } = getRandomTime();
+            updateClockUI(h, m);
+            
+            // 震动反馈
+            if (navigator.vibrate) navigator.vibrate(20);
+        }
+
+        // 初始化
+        refreshTime();
+
+    </script>
+</body>
+</html>
