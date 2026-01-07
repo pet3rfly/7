@@ -18,24 +18,55 @@
             height: 100vh;
             display: flex; flex-direction: column;
             align-items: center; 
-            /* 修改这里：不再两端对齐，而是居中偏上，然后用margin控制 */
-            justify-content: flex-start; 
+            justify-content: flex-start;
             background-color: var(--bg-color);
-            transition: background-color 1s ease;
+            /* 修改：增加 background-image 过渡 */
+            transition: background-color 1s ease, background-image 1s ease;
             font-family: "Comic Sans MS", "YouYuan", "幼圆", sans-serif;
             overflow: hidden; user-select: none;
             padding-bottom: 40px; box-sizing: border-box;
+            position: relative; /* 为伪元素定位 */
         }
 
+        /* ================= 新增视觉元素 ================= */
+        /* 白天的大背景图标 (通过伪元素实现) */
+        body::before {
+            content: '⛅'; /* 太阳和云朵 */
+            position: absolute;
+            top: 5%; left: 5%;
+            font-size: 8rem; /* 非常大 */
+            opacity: 0; /* 默认隐藏 */
+            z-index: -1; /* 放在最底层 */
+            filter: drop-shadow(0 10px 20px rgba(255,255,255,0.4));
+            transition: all 1s ease;
+            transform: translateX(-30px);
+        }
+
+        /* 当不是夜间模式时（也就是白天），显示这个大图标 */
+        body:not(.night-mode)::before {
+            opacity: 0.5;
+            transform: translateX(0);
+        }
+
+        /* 夜间模式样式 */
         body.night-mode {
-            --bg-color: #283593; /* 深夜蓝 */
+            --bg-color: #1a237e; /* 深夜蓝 */
             --text-color: #fff;
             --btn-color: #FF9800;
+
+            /* === CSS绘制星空 === */
+            background-image: 
+                radial-gradient(white, rgba(255,255,255,.2) 1px, transparent 1px),
+                radial-gradient(white, rgba(255,255,255,.1) 1px, transparent 1px),
+                radial-gradient(rgba(255,255,255,.8), rgba(255,255,255,.1) 2px, transparent 2px);
+            background-size: 250px 250px, 150px 150px, 90px 90px;
+            background-position: 10px 20px, 100px 120px, 50px 80px;
         }
+        /* =============================================== */
 
         header {
-            width: 100%; text-align: center; padding-top: 20px;
-            position: relative; z-index: 10;
+            width: 100%; text-align: center; 
+            padding-top: 30px; position: relative; z-index: 10; flex-shrink: 0;
         }
 
         h1 {
@@ -47,14 +78,13 @@
         body.night-mode h1 { text-shadow: 2px 2px 0 rgba(0,0,0,0.5); }
 
         .home-btn {
-            position: absolute; top: 20px; right: 20px;
+            position: absolute; top: 30px; right: 20px;
             background: rgba(255,255,255,0.3); padding: 8px 15px; border-radius: 20px;
             text-decoration: none; color: var(--text-color); font-weight: bold;
             border: 2px solid rgba(255,255,255,0.5); font-size: 0.9rem;
             transition: all 0.3s;
         }
 
-        /* --- 时钟主体 --- */
         .clock-container {
             position: relative;
             width: 320px; height: 320px;
@@ -63,45 +93,31 @@
             border: 12px solid #fff;
             box-shadow: var(--clock-shadow);
             display: flex; justify-content: center; align-items: center;
-            /* 新增：往下推 50px，你可以根据感觉调大调小 */
-            margin-top: 50px; 
-            /* 新增：为了保证下面也有空间，防止挤到emoji */
-            margin-bottom: 20px;
+            margin-top: 40px; flex-shrink: 0;
         }
 
-        /* 昼夜图标 (位于中心，但在指针后面) */
         .day-night-icon {
             position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 5rem; /* 图标加大 */
-            opacity: 0.2; /* 半透明，作为底纹，不干扰指针 */
-            z-index: 1; /* 最底层 */
-            transition: opacity 0.5s;
+            font-size: 5rem; opacity: 0.2; z-index: 1; transition: opacity 0.5s;
         }
 
-        /* 刻度线 */
         .tick {
             position: absolute; width: 4px; height: 10px;
             background: #999; left: 50%; top: 6px;
-            transform-origin: center 144px; /* (320-20-12)/2 = 144 */
-            transform: translateX(-50%);
-            z-index: 2;
+            transform-origin: center 144px;
+            transform: translateX(-50%); z-index: 2;
         }
         .tick.large { height: 15px; width: 6px; background: #333; }
 
-        /* 表盘数字 */
         .clock-num {
-            position: absolute;
-            width: 30px; height: 30px;
-            left: 50%; top: 50%;
-            margin-left: -15px; margin-top: -15px; /* 居中修正 */
+            position: absolute; width: 30px; height: 30px;
+            left: 50%; top: 50%; margin-left: -15px; margin-top: -15px;
             text-align: center; line-height: 30px;
             font-size: 1.5rem; font-weight: bold; color: #333;
-            z-index: 3;
-            font-family: Arial, sans-serif;
+            z-index: 3; font-family: Arial, sans-serif;
         }
 
-        /* 指针 */
         .hand {
             position: absolute; bottom: 50%; left: 50%;
             transform-origin: bottom center;
@@ -111,33 +127,18 @@
             box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
         }
 
-        /* 时针 (红色) */
-        .hour-hand {
-            width: 12px; height: 80px;
-            background: #E53935; z-index: 5;
-        }
-
-        /* 分针 (蓝色) */
-        .min-hand {
-            width: 6px; height: 120px;
-            background: #2196F3; z-index: 6;
-        }
-
-        /* 中心点 */
+        .hour-hand { width: 12px; height: 80px; background: #E53935; z-index: 5; }
+        .min-hand { width: 6px; height: 120px; background: #2196F3; z-index: 6; }
         .center-dot {
             width: 20px; height: 20px; background: #333;
             border-radius: 50%; position: absolute; z-index: 10;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-            border: 4px solid #fff; /* 加个白边更好看 */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3); border: 4px solid #fff;
         }
 
-        /* --- 事件展示区 --- */
         .event-box {
-            text-align: center;
-            /* 修改这里：让它自动撑开中间的空间，把按钮挤到底部 */
-            flex-grow: 1; 
+            text-align: center; flex-grow: 1;
             display: flex; flex-direction: column; justify-content: center;
-            gap: 10px;
+            gap: 10px; width: 100%;
         }
 
         .event-emoji {
@@ -148,16 +149,11 @@
         }
         
         .event-name {
-            font-size: 2rem; font-weight: 900; color: var(--text-color);
-            opacity: 0.9;
+            font-size: 2rem; font-weight: 900; color: var(--text-color); opacity: 0.9;
         }
-
-        /* 我们去掉了数字时间显示，用这个占位保持布局 */
-        .time-placeholder { height: 10px; } 
 
         @keyframes popIn { from{transform:scale(0);} to{transform:scale(1);} }
 
-        /* 刷新按钮 */
         .refresh-btn {
             background-color: var(--btn-color); color: white;
             border: none; border-radius: 50px; padding: 15px 60px;
@@ -165,19 +161,21 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
             transition: all 0.2s;
             display: flex; align-items: center; gap: 10px;
-            margin-bottom: 30px;
+            margin-bottom: 20px; flex-shrink: 0;
         }
         .refresh-btn:active { transform: scale(0.95); }
 
-        /* 移动端适配 */
         @media (max-width: 400px) {
-            .clock-container { width: 280px; height: 280px; }
-            .tick { transform-origin: center 124px; } /* (280-20-12)/2 */
+            .clock-container { width: 280px; height: 280px; margin-top: 20px; }
+            .tick { transform-origin: center 124px; }
             .hour-hand { height: 65px; }
             .min-hand { height: 100px; }
             .clock-num { font-size: 1.2rem; }
             .event-emoji { font-size: 5rem; }
             .event-name { font-size: 1.5rem; }
+            h1 { font-size: 1.8rem; }
+            /* 手机端大图标稍微小一点 */
+            body::before { font-size: 6rem; }
         }
     </style>
 </head>
@@ -190,7 +188,6 @@
 
     <div class="clock-container" id="clock">
         <div class="day-night-icon" id="dn-icon">☀️</div>
-        
         <div class="hour-hand hand" id="h-hand"></div>
         <div class="min-hand hand" id="m-hand"></div>
         <div class="center-dot"></div>
@@ -207,9 +204,8 @@
 
     <script>
         const clock = document.getElementById('clock');
-        const clockRadius = 160; // 容器宽度320的一半 (如果是手机端JS会自动计算吗？这里是逻辑半径)
         
-        // --- 1. 生成刻度线 ---
+        // 1. 生成刻度
         for (let i = 0; i < 60; i++) {
             const tick = document.createElement('div');
             tick.className = i % 5 === 0 ? 'tick large' : 'tick';
@@ -217,27 +213,20 @@
             clock.appendChild(tick);
         }
 
-        // --- 2. 生成数字 1-12 ---
-        // 数字需要稍微往里缩一点，半径设为 120 (320px容器)
-        // 手机端容器变小，所以我们用百分比或者CSS transform计算更稳妥
-        // 这里采用简单的三角函数定位
-        const numRadius = 115; // 数字距离中心的半径
+        // 2. 生成数字
+        const numRadius = 115; 
         for (let i = 1; i <= 12; i++) {
             const num = document.createElement('div');
             num.className = 'clock-num';
             num.innerText = i;
-            
-            // 计算位置：0点(12点)是 -90度，所以需要调整角度
-            // 30度 = PI / 6
             const angle = (i * 30) * (Math.PI / 180);
             const x = Math.sin(angle) * numRadius;
             const y = -Math.cos(angle) * numRadius;
-            
             num.style.transform = `translate(${x}px, ${y}px)`;
             clock.appendChild(num);
         }
 
-        // --- 3. 作息时间表 ---
+        // 3. 作息时间
         function getMinutes(h, m) { return h * 60 + m; }
 
         const schedule = [
@@ -256,11 +245,9 @@
             { start: getMinutes(0, 0),  end: getMinutes(6, 59),  emoji: "🛌", name: "睡觉觉" }
         ];
 
-        // --- 4. 核心逻辑 ---
-        
+        // 4. 逻辑
         function getRandomTime() {
             let h, m;
-            // 80% 整点
             if (Math.random() < 0.8) {
                 h = Math.floor(Math.random() * 24);
                 m = 0;
@@ -272,14 +259,12 @@
         }
 
         function updateClockUI(h, m) {
-            // 指针角度
             const mDeg = m * 6;
             const hDeg = h * 30 + m * 0.5;
 
             document.getElementById('m-hand').style.transform = `translateX(-50%) rotate(${mDeg}deg)`;
             document.getElementById('h-hand').style.transform = `translateX(-50%) rotate(${hDeg}deg)`;
 
-            // 昼夜模式
             const isDay = h >= 7 && h < 18;
             const body = document.body;
             const icon = document.getElementById('dn-icon');
@@ -292,7 +277,6 @@
                 icon.innerText = "🌙";
             }
 
-            // 匹配作息
             const currentMins = getMinutes(h, m);
             let targetEmoji = "🧸"; 
             let targetName = "自由活动";
@@ -307,11 +291,9 @@
             
             const emojiEl = document.getElementById('event-emoji');
             const nameEl = document.getElementById('event-name');
-            
             emojiEl.innerText = targetEmoji;
             nameEl.innerText = targetName;
             
-            // 重置动画
             emojiEl.style.animation = 'none';
             emojiEl.offsetHeight; 
             emojiEl.style.animation = 'popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
@@ -324,7 +306,6 @@
         }
 
         refreshTime();
-
     </script>
 </body>
 </html>
